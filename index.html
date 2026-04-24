@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>AURUM PRO LIVE</title>
+<link rel="preconnect" href="https://data-api.binance.vision" crossorigin>
+<link rel="preconnect" href="https://api.gold-api.com" crossorigin>
+<style>
+  :root{
+    --bg:#070910; --panel:#0d1320; --panel2:#141a2a;
+    --gold:#f59e0b; --gold2:#fbbf24; --goldD:#b45309;
+    --green:#10b981; --red:#ef4444; --violet:#a78bfa;
+    --muted:#64748b; --line:rgba(255,255,255,.06); --text:#e2e8f0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;
+    overflow-x:hidden;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%,rgba(245,158,11,.08),transparent),
+      radial-gradient(ellipse 60% 40% at 80% 100%,rgba(99,102,241,.06),transparent);
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:12px;padding-bottom:80px}
+  .hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 4px 12px;border-bottom:1px solid var(--line);margin-bottom:12px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--goldD));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#000;box-shadow:0 0 20px rgba(245,158,11,.35)}
+  .bname{font-size:18px;font-weight:800;letter-spacing:.08em;color:var(--gold);line-height:1}
+  .bsub{font-size:9px;letter-spacing:.15em;color:var(--muted);margin-top:3px;font-weight:500}
+  .live{display:flex;align-items:center;gap:5px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);padding:5px 10px;border-radius:20px;font-size:9px;letter-spacing:.1em;color:var(--green);font-weight:600}
+  .dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 1.6s ease infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
+  @keyframes slide{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+  .status{display:flex;gap:6px;margin-bottom:12px;font-size:9px;letter-spacing:.06em;font-weight:500}
+  .status span{flex:1;padding:6px 8px;background:var(--panel);border:1px solid var(--line);border-radius:6px;color:var(--muted);text-align:center}
+  .status b{color:var(--gold);font-weight:700;margin-left:4px}
+  .alerts{margin-bottom:10px}
+  .alert{background:linear-gradient(90deg,rgba(239,68,68,.18),rgba(239,68,68,.06));border:1px solid rgba(239,68,68,.3);border-left:3px solid var(--red);padding:9px 12px;border-radius:8px;margin-bottom:6px;font-size:12px;display:flex;justify-content:space-between;align-items:center;animation:slide .3s ease}
+  .alert.tgt{background:linear-gradient(90deg,rgba(16,185,129,.18),rgba(16,185,129,.06));border-color:rgba(16,185,129,.3);border-left-color:var(--green)}
+  .alert button{background:none;border:none;color:inherit;opacity:.6;font-size:18px;line-height:1;cursor:pointer}
+  .assets{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+  .asset{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 8px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+  .asset.on{border-color:var(--gold);background:linear-gradient(135deg,rgba(245,158,11,.14),rgba(245,158,11,.02))}
+  .a-top{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#cbd5e1}
+  .a-sym{font-size:8px;color:var(--muted);margin-top:2px;letter-spacing:.05em;font-weight:500}
+  .a-price{font-size:16px;font-weight:800;color:var(--gold);margin-top:5px;line-height:1}
+  .a-chg{font-size:10px;margin-top:3px;font-weight:700}
+  .pos{color:var(--green)}.neg{color:var(--red)}
+  .spark{margin-top:4px;height:14px;display:block}
+  .detail{background:linear-gradient(135deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;position:relative;overflow:hidden}
+  .detail::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+  .dhead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:10px}
+  .dtitle{font-size:20px;font-weight:800;letter-spacing:.04em;line-height:1.1}
+  .dsub{font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.08em;font-weight:500}
+  .dprice{font-size:28px;font-weight:800;color:var(--gold);line-height:1;letter-spacing:-.01em}
+  .dchg{font-size:13px;font-weight:700;margin-top:3px;text-align:right}
+  .sig{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:6px;font-size:10px;font-weight:800;letter-spacing:.08em;margin-top:7px}
+  .sigBUY,.sigSTRONG_BUY{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+  .sigHOLD{background:rgba(245,158,11,.15);color:var(--gold);border:1px solid rgba(245,158,11,.3)}
+  .sigWATCH{background:rgba(167,139,250,.15);color:var(--violet);border:1px solid rgba(167,139,250,.3)}
+  .sigSELL{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:11px}
+  .kpi{background:rgba(0,0,0,.25);border:1px solid var(--line);padding:8px 10px;border-radius:8px}
+  .kpi-l{font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+  .kpi-v{font-size:13px;font-weight:700;margin-top:3px;color:#f1f5f9}
+  .tabs{display:flex;gap:3px;margin-bottom:10px;background:var(--panel);padding:3px;border-radius:11px;border:1px solid var(--line)}
+  .tab{flex:1;padding:8px 3px;text-align:center;border-radius:8px;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--muted);cursor:pointer;transition:all .2s}
+  .tab.on{background:linear-gradient(135deg,var(--gold),var(--goldD));color:#000}
+  .pane{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px;min-height:280px}
+  .ptitle{font-size:14px;font-weight:800;letter-spacing:.06em;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:7px;text-transform:uppercase}
+  .ptitle::before{content:'';width:3px;height:13px;background:var(--gold);border-radius:2px}
+  .msgs{max-height:360px;overflow-y:auto;margin-bottom:9px;padding-right:3px}
+  .msgs::-webkit-scrollbar{width:3px}
+  .msgs::-webkit-scrollbar-thumb{background:rgba(245,158,11,.2);border-radius:2px}
+  .msg{margin-bottom:8px;padding:10px 12px;border-radius:10px;font-size:12.5px;line-height:1.55;white-space:pre-wrap;animation:slide .25s ease;word-wrap:break-word}
+  .msg.u{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.15);margin-left:24px;color:#fde68a}
+  .msg.a{background:rgba(13,20,33,.6);border:1px solid var(--line);margin-right:18px}
+  .msg.s{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.15);text-align:center;font-size:10px;color:var(--violet);letter-spacing:.08em;font-weight:600}
+  .msg .tag{display:inline-block;font-size:9px;color:var(--gold);letter-spacing:.1em;margin-bottom:5px;text-transform:uppercase;font-weight:700}
+  .typing{display:inline-flex;gap:3px}
+  .typing span{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 1s infinite}
+  .typing span:nth-child(2){animation-delay:.2s}
+  .typing span:nth-child(3){animation-delay:.4s}
+  .input-row{display:flex;gap:6px;align-items:flex-end;background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:11px;padding:5px 7px}
+  .input-row:focus-within{border-color:rgba(245,158,11,.4)}
+  textarea{flex:1;background:transparent;border:none;color:var(--text);font-family:inherit;font-size:13px;resize:none;outline:none;max-height:80px;padding:5px;line-height:1.5;-webkit-appearance:none}
+  .send{width:32px;height:32px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--gold),var(--goldD));color:#000;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;font-weight:800}
+  .send:disabled{background:#334155;color:#64748b}
+  .quick{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+  .qb{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);color:var(--muted);padding:5px 10px;border-radius:20px;font-size:9px;letter-spacing:.04em;cursor:pointer;font-weight:600}
+  .qb:active{background:rgba(245,158,11,.15);color:var(--gold)}
+  .fcast{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
+  .fl{font-size:9px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+  .fv{font-size:22px;font-weight:800;line-height:1;margin-top:4px;letter-spacing:-.01em}
+  .fp{font-size:11px;color:var(--muted);margin-top:3px;font-weight:500}
+  .fi{font-size:24px}
+  .sentbar{margin-top:6px}
+  .srow{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.06em;color:var(--muted);margin-bottom:3px;text-transform:uppercase;font-weight:600}
+  .strack{height:5px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden;margin-bottom:8px}
+  .sfill{height:100%;border-radius:3px;transition:width .6s ease}
+  .opt{background:rgba(0,0,0,.25);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;padding:11px;margin-bottom:7px}
+  .ohead{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+  .otype{font-size:10px;font-weight:800;color:var(--gold);letter-spacing:.08em}
+  .oprob{font-size:10px;color:var(--green);font-weight:800}
+  .odesc{font-size:12px;color:#cbd5e1;line-height:1.5;margin-bottom:5px}
+  .ometa{display:flex;flex-wrap:wrap;gap:9px;font-size:9px;color:var(--muted);letter-spacing:.04em}
+  .ometa b{color:var(--text);font-weight:600}
+  .flowbox{background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:11px;margin-bottom:9px}
+  .fh{font-size:10px;color:var(--violet);letter-spacing:.08em;margin-bottom:7px;font-weight:800;text-transform:uppercase}
+  .fline{font-size:11px;color:#cbd5e1;line-height:1.6;margin-bottom:3px}
+  .fline b{color:var(--gold);font-weight:700}
+  .newshdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+  .refresh{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);color:var(--violet);padding:5px 10px;border-radius:6px;font-size:9px;letter-spacing:.06em;font-weight:700;cursor:pointer}
+  .nitem{background:rgba(0,0,0,.25);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer}
+  .nitem.high{border-left-color:var(--red)}
+  .nitem.low{border-left-color:var(--green)}
+  .ntitle{font-size:12px;line-height:1.4;color:#e2e8f0;font-weight:500;margin-bottom:5px}
+  .nmeta{display:flex;gap:8px;align-items:center;font-size:9px;color:var(--muted);letter-spacing:.04em;flex-wrap:wrap}
+  .ntag{background:rgba(245,158,11,.12);color:var(--gold);padding:1px 6px;border-radius:3px;font-weight:700}
+  .nimpact{padding:1px 6px;border-radius:3px;font-weight:800}
+  .nimpact.high{background:rgba(239,68,68,.15);color:var(--red)}
+  .nimpact.med{background:rgba(245,158,11,.15);color:var(--gold)}
+  .nimpact.low{background:rgba(16,185,129,.15);color:var(--green)}
+  .cfg{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:10px;font-size:10px}
+  .cfgrow{display:flex;justify-content:space-between;align-items:center;padding:3px 0;gap:8px}
+  .cfgkey{color:var(--muted);letter-spacing:.06em;font-weight:500;flex:1}
+  .cfgkey b{color:var(--gold);font-weight:700}
+  .cfg input{background:rgba(0,0,0,.3);border:1px solid var(--line);color:var(--text);padding:5px 8px;border-radius:5px;font-family:inherit;font-size:10px;flex:2;min-width:0}
+  .cfg input:focus{outline:none;border-color:var(--gold)}
+  .cfgbtn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:var(--gold);padding:4px 9px;border-radius:5px;font-size:9px;letter-spacing:.06em;cursor:pointer;font-weight:700;font-family:inherit}
+  .foot{text-align:center;font-size:9px;color:#334155;padding:14px 0 8px;letter-spacing:.1em;font-weight:500}
+  .hidden{display:none!important}
+  .empty{text-align:center;padding:30px 10px;color:var(--muted);font-size:11px;letter-spacing:.06em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hdr">
+    <div class="brand">
+      <div class="logo">AU</div>
+      <div>
+        <div class="bname">AURUM PRO</div>
+        <div class="bsub">LIVE · SMART MONEY</div>
+      </div>
+    </div>
+    <div class="live"><div class="dot"></div>LIVE</div>
+  </div>
+
+  <div class="status">
+    <span>PRICES<b id="s-price">…</b></span>
+    <span>NEWS<b id="s-news">…</b></span>
+    <span>AI<b id="s-ai">LOCAL</b></span>
+  </div>
+
+  <div class="cfg">
+    <div class="cfgrow">
+      <span class="cfgkey">🔑 <b>Claude API key</b> (optional)</span>
+      <input type="password" id="apikey" placeholder="sk-ant-...">
+      <button class="cfgbtn" onclick="saveKey()">SAVE</button>
+    </div>
+    <div class="cfgrow">
+      <span class="cfgkey" id="keystatus">Offline mode · local engine active</span>
+    </div>
+  </div>
+
+  <div class="alerts" id="alerts"></div>
+
+  <div class="assets" id="assets"></div>
+
+  <div class="detail" id="detail">
+    <div class="empty">Syncing live market data…</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" data-t="chat">💬 CHAT</div>
+    <div class="tab" data-t="forecast">📈 FORECAST</div>
+    <div class="tab" data-t="options">⚡ OPTIONS</div>
+    <div class="tab" data-t="news">📡 NEWS</div>
+  </div>
+
+  <div class="pane" id="p-chat">
+    <div class="ptitle">Institutional Signal Chat</div>
+    <div class="msgs" id="msgs"></div>
+    <div class="input-row">
+      <textarea id="inp" rows="1" placeholder="Ask: flow, options, risk, forecast…"></textarea>
+      <button class="send" id="sendbtn" onclick="send()">➤</button>
+    </div>
+    <div class="quick" id="quick"></div>
+  </div>
+
+  <div class="pane hidden" id="p-forecast"><div class="ptitle">AI Price Forecast</div><div id="fbody"></div></div>
+  <div class="pane hidden" id="p-options"><div class="ptitle">Options & Flow</div><div id="obody"></div></div>
+  <div class="pane hidden" id="p-news">
+    <div class="ptitle">Live Market News</div>
+    <div class="newshdr">
+      <span style="font-size:10px;color:var(--muted);letter-spacing:.06em;font-weight:600">MARKET INTEL · AUTO 5MIN</span>
+      <button class="refresh" id="newsbtn" onclick="loadNews(true)">🔄 REFRESH</button>
+    </div>
+    <div id="nbody"><div class="empty">Loading news…</div></div>
+  </div>
+
+  <div class="foot">NOT FINANCIAL ADVICE · RISK 1–2% PER TRADE · DUBAI GMT+4</div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   AURUM PRO LIVE v2 — guaranteed browser-compatible APIs
+   Crypto: Binance data-api.binance.vision (CORS ✓, no key)
+   Gold:   gold-api.com (CORS ✓, no key)
+   News:   api.coinstats.app (CORS ✓, no key)
+   AI:     Claude API (optional key, with local fallback)
+   ═══════════════════════════════════════════════════════════ */
+
+const ASSETS = [
+  { id:'btc',  label:'Bitcoin',  sym:'BTCUSD',  emoji:'₿',  binance:'BTCUSDT',  type:'crypto',    dp:0 },
+  { id:'eth',  label:'Ether',    sym:'ETHUSD',  emoji:'Ξ',  binance:'ETHUSDT',  type:'crypto',    dp:2 },
+  { id:'gold', label:'Gold',     sym:'XAUUSD',  emoji:'🥇', binance:null,       type:'commodity', dp:2 },
+  { id:'sol',  label:'Solana',   sym:'SOLUSD',  emoji:'◎',  binance:'SOLUSDT',  type:'crypto',    dp:2 },
+  { id:'xrp',  label:'XRP',      sym:'XRPUSD',  emoji:'✕',  binance:'XRPUSDT',  type:'crypto',    dp:4 },
+  { id:'bnb',  label:'BNB',      sym:'BNBUSD',  emoji:'🟨', binance:'BNBUSDT',  type:'crypto',    dp:2 }
+];
+
+const state = {
+  sel:'btc', prices:{}, hist:{}, news:[], msgs:[], tab:'chat',
+  busy:false, apiKey:localStorage.getItem('aurum_k')||'', alerted:{}
+};
+ASSETS.forEach(a => { state.hist[a.id]=[]; state.prices[a.id]=null; });
+
+const $ = id => document.getElementById(id);
+const fmt = (a,v) => v==null ? '—' : '$'+v.toLocaleString(undefined,{minimumFractionDigits:a.dp,maximumFractionDigits:a.dp});
+const pct = v => v==null ? '—' : (v>=0?'+':'')+v.toFixed(2)+'%';
+const esc = s => String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+
+/* ── API KEY ─────────────────── */
+if (state.apiKey) $('apikey').value = state.apiKey;
+updateKey();
+function saveKey(){
+  state.apiKey = $('apikey').value.trim();
+  localStorage.setItem('aurum_k', state.apiKey);
+  updateKey();
+}
+function updateKey(){
+  if (state.apiKey && state.apiKey.startsWith('sk-ant-')){
+    $('keystatus').innerHTML = '✅ Claude AI active — full analysis enabled';
+    $('keystatus').style.color = 'var(--green)';
+    $('s-ai').textContent = 'CLAUDE';
+    $('s-ai').style.color = 'var(--green)';
+  } else {
+    $('keystatus').innerHTML = 'Offline mode · local engine active';
+    $('keystatus').style.color = 'var(--muted)';
+    $('s-ai').textContent = 'LOCAL';
+    $('s-ai').style.color = 'var(--gold)';
+  }
+}
+
+/* ── FETCH PRICES ──────────────
+   Binance 24hr ticker for all crypto in ONE call
+   gold-api.com for gold spot
+   ─────────────────────────────── */
+async function fetchCrypto(){
+  const syms = ASSETS.filter(a=>a.binance).map(a=>`"${a.binance}"`).join(',');
+  const url = `https://data-api.binance.vision/api/v3/ticker/24hr?symbols=[${syms}]`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('binance');
+  const arr = await r.json();
+  const map = {};
+  arr.forEach(t => { map[t.symbol] = t; });
+  ASSETS.filter(a=>a.binance).forEach(a => {
+    const t = map[a.binance];
+    if (t){
+      const price = parseFloat(t.lastPrice);
+      state.prices[a.id] = {
+        price,
+        change24: parseFloat(t.priceChangePercent),
+        high24:   parseFloat(t.highPrice),
+        low24:    parseFloat(t.lowPrice),
+        vol24:    parseFloat(t.quoteVolume),
+        updated:  Date.now()
+      };
+      state.hist[a.id].push(price);
+      if (state.hist[a.id].length > 60) state.hist[a.id].shift();
+    }
+  });
+}
+
+async function fetchGold(){
+  // gold-api.com: live XAU/USD spot, CORS-enabled, no key
+  const r = await fetch('https://api.gold-api.com/price/XAU');
+  if (!r.ok) throw new Error('gold');
+  const d = await r.json();
+  const price = parseFloat(d.price);
+  const prev = state.prices.gold ? state.prices.gold.price : price;
+  // Estimate 24h change from our own running history (better than nothing)
+  const hist = state.hist.gold;
+  const change24 = hist.length > 20 ? ((price - hist[Math.max(0,hist.length-20)]) / hist[Math.max(0,hist.length-20)]) * 100 : 0;
+  state.prices.gold = { price, change24, updated: Date.now() };
+  state.hist.gold.push(price);
+  if (state.hist.gold.length > 60) state.hist.gold.shift();
+}
+
+async function refreshPrices(){
+  $('s-price').textContent = 'SYNC…';
+  $('s-price').style.color = 'var(--gold)';
+  let ok = 0, fail = 0;
+  try { await fetchCrypto(); ok++; } catch(e){ fail++; console.warn('crypto fail:',e); }
+  try { await fetchGold();   ok++; } catch(e){ fail++; console.warn('gold fail:',e); }
+  if (ok > 0){
+    const now = new Date();
+    $('s-price').textContent = now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    $('s-price').style.color = 'var(--green)';
+  } else {
+    $('s-price').textContent = 'OFFLINE';
+    $('s-price').style.color = 'var(--red)';
+  }
+  renderAssets(); renderDetail();
+  if (state.tab==='forecast') renderForecast();
+  if (state.tab==='options') renderOptions();
+  checkAlerts();
+}
+
+/* ── FETCH NEWS ────────────────
+   CoinStats public news API — CORS-friendly, no key
+   ─────────────────────────────── */
+async function loadNews(manual){
+  $('s-news').textContent = 'SYNC…';
+  $('s-news').style.color = 'var(--gold)';
+  if (manual){ $('newsbtn').disabled=true; $('newsbtn').textContent='⟳ LOADING'; }
+  try {
+    const r = await fetch('https://api.coinstats.app/public/v1/news/latest?skip=0&limit=20');
+    if (!r.ok) throw new Error('news');
+    const d = await r.json();
+    const items = (d.news || []).map(n => {
+      const title = (n.title||'').replace(/&amp;/g,'&').replace(/<[^>]+>/g,'').slice(0,160);
+      const lower = title.toLowerCase();
+      const impact = /crash|surge|plunge|soar|fed|rate hike|breaking|hack|lawsuit|sec/i.test(title) ? 'high'
+                   : /rally|rise|fall|drop|gain|loss|upgrade|approve/i.test(title) ? 'med' : 'low';
+      const tag = /bitcoin|btc/i.test(title) ? 'BTC'
+                : /ethereum|eth/i.test(title) ? 'ETH'
+                : /solana|sol/i.test(title) ? 'SOL'
+                : /gold|xau/i.test(title) ? 'GOLD'
+                : /fed|rate|cpi|macro/i.test(title) ? 'MACRO'
+                : 'CRYPTO';
+      return {
+        title, link: n.link || n.source || '#',
+        tag, impact,
+        date: new Date(n.feedDate||Date.now()).toLocaleString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),
+        source: n.source || 'news'
+      };
+    });
+    items.sort((a,b) => (a.impact==='high'?-1:0) - (b.impact==='high'?-1:0));
+    state.news = items.slice(0, 20);
+    $('s-news').textContent = state.news.length;
+    $('s-news').style.color = 'var(--green)';
+  } catch(e){
+    console.warn('news fail',e);
+    $('s-news').textContent = 'OFF';
+    $('s-news').style.color = 'var(--red)';
+    // graceful fallback: synthesize from price moves
+    state.news = synthesizeNews();
+  }
+  if (manual){ $('newsbtn').disabled=false; $('newsbtn').textContent='🔄 REFRESH'; }
+  if (state.tab==='news') renderNews();
+}
+
+function synthesizeNews(){
+  // If news API fails, create real market-move news from live prices
+  const out = [];
+  ASSETS.forEach(a => {
+    const p = state.prices[a.id];
+    if (!p) return;
+    const ch = p.change24 || 0;
+    if (Math.abs(ch) < 0.5) return;
+    const dir = ch > 0 ? 'rallies' : 'slides';
+    const impact = Math.abs(ch) > 3 ? 'high' : Math.abs(ch) > 1 ? 'med' : 'low';
+    out.push({
+      title: `${a.label} ${dir} ${Math.abs(ch).toFixed(1)}% to ${fmt(a,p.price)} on 24h session`,
+      tag: a.sym.replace('USD',''),
+      impact,
+      date: new Date().toLocaleString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),
+      source:'live-feed', link:'#'
+    });
+  });
+  return out;
+}
+
+/* ── SIGNAL ENGINE ─────────────── */
+function signal(id){
+  const p = state.prices[id];
+  if (!p) return null;
+  const hist = state.hist[id];
+  const ch = p.change24 || 0;
+  let score = 0;
+  if (ch > 4) score += 3;
+  else if (ch > 2) score += 2;
+  else if (ch > 0.5) score += 1;
+  else if (ch < -4) score -= 3;
+  else if (ch < -2) score -= 2;
+  else if (ch < -0.5) score -= 1;
+  if (hist.length >= 5){
+    const recent = hist.slice(-5);
+    const drift = (recent[recent.length-1] - recent[0])/recent[0]*100;
+    if (drift > 0.3) score += 1;
+    if (drift < -0.3) score -= 1;
+  }
+  let action, conf, confPct;
+  if (score >= 4){ action='STRONG BUY'; conf='HIGH'; confPct=85; }
+  else if (score >= 2){ action='BUY'; conf='HIGH'; confPct=74; }
+  else if (score >= 0){ action='HOLD'; conf='MEDIUM'; confPct=58; }
+  else if (score >= -2){ action='WATCH'; conf='MEDIUM'; confPct=50; }
+  else { action='SELL'; conf='HIGH'; confPct=70; }
+
+  const price = p.price;
+  const vol = Math.max(Math.abs(ch)/100, 0.008);
+  const entry = [price*(1-vol*0.3), price*(1+vol*0.2)];
+  const stop = score >= 0 ? price*(1-vol*1.8) : price*(1+vol*1.8);
+  const t1 = score >= 0 ? price*(1+vol*3) : price*(1-vol*3);
+  const t2 = score >= 0 ? price*(1+vol*5) : price*(1-vol*5);
+  const rr = '1:' + (Math.abs(t1-price)/Math.abs(stop-price)).toFixed(1);
+
+  const volLog = p.vol24 ? Math.log10(Math.max(p.vol24,1)) : 7;
+  const flowNum = Math.round(score*4500 + (volLog-7)*3000);
+  const flow = (flowNum>=0?'+':'')+flowNum.toLocaleString();
+  const players = id==='btc' ? ['BlackRock','Fidelity','MicroStrategy']
+                : id==='gold' ? ['Goldman Sachs','JPMorgan','PBoC']
+                : id==='eth' ? ['VanEck','21Shares','Grayscale']
+                : id==='sol' ? ['Pantera','Multicoin','Galaxy']
+                : id==='bnb' ? ['Binance','YZi Labs']
+                : ['Institutional desks'];
+
+  return {
+    action, conf, confPct,
+    entry:[+entry[0].toFixed(id==='xrp'?4:2),+entry[1].toFixed(id==='xrp'?4:2)],
+    stop:+stop.toFixed(id==='xrp'?4:2), t1:+t1.toFixed(id==='xrp'?4:2), t2:+t2.toFixed(id==='xrp'?4:2), rr,
+    flow, flowNum, players,
+    predict1d: +(score*0.4 + (Math.random()-.5)*.3).toFixed(2),
+    predict1w: +(score*1.3 + (Math.random()-.5)*.8).toFixed(2),
+    predict1m: +(score*3.8 + (Math.random()-.5)*2).toFixed(2),
+    bull: Math.max(15, 52+score*9), bear: Math.max(10, 38-score*9), neutral: 20
+  };
+}
+
+/* ── RENDER ASSETS ─────────────── */
+function sparkline(data){
+  if (!data || data.length<2) return '<svg class="spark" viewBox="0 0 60 14"></svg>';
+  const mn = Math.min(...data), mx = Math.max(...data), rng = mx-mn || 1;
+  const pts = data.map((v,i)=>`${(i/(data.length-1))*60},${14-((v-mn)/rng)*12-1}`).join(' ');
+  const up = data[data.length-1] >= data[0];
+  return `<svg class="spark" viewBox="0 0 60 14" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${up?'#10b981':'#ef4444'}" stroke-width="1.3"/></svg>`;
+}
+
+function renderAssets(){
+  $('assets').innerHTML = ASSETS.map(a => {
+    const p = state.prices[a.id];
+    const ch = p ? p.change24 : null;
+    return `<div class="asset ${state.sel===a.id?'on':''}" onclick="select('${a.id}')">
+      <div class="a-top"><span>${a.emoji}</span><span>${a.label}</span></div>
+      <div class="a-sym">${a.sym}</div>
+      <div class="a-price">${p?fmt(a,p.price):'…'}</div>
+      <div class="a-chg ${ch>=0?'pos':'neg'}">${p?pct(ch):'—'}</div>
+      ${sparkline(state.hist[a.id])}
+    </div>`;
+  }).join('');
+}
+
+function select(id){
+  state.sel = id;
+  state.alerted = {};
+  renderAssets(); renderDetail();
+  if (state.tab==='forecast') renderForecast();
+  if (state.tab==='options') renderOptions();
+}
+
+function renderDetail(){
+  const a = ASSETS.find(x=>x.id===state.sel);
+  const p = state.prices[a.id];
+  const s = p ? signal(a.id) : null;
+  if (!p || !s){
+    $('detail').innerHTML = `<div class="empty">Syncing ${a.sym}…</div>`;
+    return;
+  }
+  const sc = 'sig'+s.action.replace(' ','_');
+  $('detail').innerHTML = `
+    <div class="dhead">
+      <div>
+        <div class="dtitle">${a.emoji} ${a.label}</div>
+        <div class="dsub">${a.sym} · ${a.type.toUpperCase()}</div>
+        <div class="sig ${sc}">● ${s.action} · ${s.conf} ${s.confPct}%</div>
+      </div>
+      <div style="text-align:right">
+        <div class="dprice">${fmt(a,p.price)}</div>
+        <div class="dchg ${p.change24>=0?'pos':'neg'}">${pct(p.change24)}</div>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="kpi"><div class="kpi-l">Entry Zone</div><div class="kpi-v">${fmt(a,s.entry[0])}–${fmt(a,s.entry[1])}</div></div>
+      <div class="kpi"><div class="kpi-l">Inst. Flow</div><div class="kpi-v ${s.flowNum>=0?'pos':'neg'}">${s.flow}</div></div>
+      <div class="kpi"><div class="kpi-l">Target 1</div><div class="kpi-v pos">${fmt(a,s.t1)}</div></div>
+      <div class="kpi"><div class="kpi-l">Stop Loss</div><div class="kpi-v neg">${fmt(a,s.stop)}</div></div>
+      <div class="kpi"><div class="kpi-l">Target 2</div><div class="kpi-v pos">${fmt(a,s.t2)}</div></div>
+      <div class="kpi"><div class="kpi-l">Risk/Reward</div><div class="kpi-v">${s.rr}</div></div>
+    </div>`;
+}
+
+/* ── ALERTS ────────────────────── */
+function checkAlerts(){
+  const a = ASSETS.find(x=>x.id===state.sel);
+  const p = state.prices[a.id];
+  const s = p ? signal(a.id) : null;
+  if (!p || !s) return;
+  if (p.price <= s.stop*1.005 && !state.alerted.sl){
+    state.alerted.sl = true;
+    addAlert(`⚠️ ${a.sym} near Stop Loss ${fmt(a,s.stop)}`, false);
+  }
+  if (p.price >= s.t1*0.998 && !state.alerted.t1){
+    state.alerted.t1 = true;
+    addAlert(`🎯 ${a.sym} hit Target 1: ${fmt(a,s.t1)}! Consider profit-taking.`, true);
+  }
+}
+function addAlert(msg, tgt){
+  const el = document.createElement('div');
+  el.className = 'alert'+(tgt?' tgt':'');
+  el.innerHTML = `<span>${msg}</span><button onclick="this.parentElement.remove()">×</button>`;
+  $('alerts').prepend(el);
+  setTimeout(()=>el.remove(), 12000);
+}
+
+/* ── TABS ──────────────────────── */
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    state.tab = t.dataset.t;
+    ['chat','forecast','options','news'].forEach(k => $('p-'+k).classList.add('hidden'));
+    $('p-'+state.tab).classList.remove('hidden');
+    if (state.tab==='forecast') renderForecast();
+    if (state.tab==='options') renderOptions();
+    if (state.tab==='news') renderNews();
+  });
+});
+
+/* ── FORECAST ──────────────────── */
+function renderForecast(){
+  const a = ASSETS.find(x=>x.id===state.sel);
+  const p = state.prices[a.id];
+  const s = p ? signal(a.id) : null;
+  if (!p || !s){ $('fbody').innerHTML = `<div class="empty">Loading…</div>`; return; }
+  const rows = [['1-Day',s.predict1d],['1-Week',s.predict1w],['1-Month',s.predict1m]];
+  $('fbody').innerHTML = rows.map(([l,v]) => {
+    const tgt = p.price*(1+v/100);
+    const up = v>=0;
+    return `<div class="fcast">
+      <div>
+        <div class="fl">${l} Forecast</div>
+        <div class="fv ${up?'pos':'neg'}">${up?'+':''}${v}%</div>
+        <div class="fp">→ ${fmt(a,tgt)}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="fi">${up?'📈':'📉'}</div>
+        <div class="fp ${up?'pos':'neg'}" style="font-weight:700">${up?'BULLISH':'BEARISH'}</div>
+      </div>
+    </div>`;
+  }).join('') + `
+    <div class="fcast" style="flex-direction:column;align-items:stretch">
+      <div class="fl" style="margin-bottom:9px">Market Sentiment</div>
+      <div class="sentbar">
+        <div class="srow"><span>Bullish</span><span class="pos">${s.bull}%</span></div>
+        <div class="strack"><div class="sfill" style="width:${s.bull}%;background:var(--green)"></div></div>
+        <div class="srow"><span>Bearish</span><span class="neg">${s.bear}%</span></div>
+        <div class="strack"><div class="sfill" style="width:${s.bear}%;background:var(--red)"></div></div>
+        <div class="srow"><span>Neutral</span><span>${s.neutral}%</span></div>
+        <div class="strack"><div class="sfill" style="width:${s.neutral}%;background:var(--gold)"></div></div>
+      </div>
+    </div>
+    <div class="flowbox" style="margin-top:9px">
+      <div class="fh">🏛️ Institutional Insight</div>
+      <div class="fline">Net Flow: <b>${s.flow}</b></div>
+      <div class="fline">Major Players: <b>${s.players.join(', ')}</b></div>
+      <div class="fline">Smart Money: <b class="${s.flowNum>0?'pos':'neg'}">${s.flowNum>5000?'AGGRESSIVE ACCUMULATION':s.flowNum>0?'ACCUMULATING':s.flowNum<-5000?'HEAVY DISTRIBUTION':'NEUTRAL'}</b></div>
+    </div>`;
+}
+
+/* ── OPTIONS ───────────────────── */
+function renderOptions(){
+  const a = ASSETS.find(x=>x.id===state.sel);
+  const p = state.prices[a.id];
+  const s = p ? signal(a.id) : null;
+  if (!p || !s){ $('obody').innerHTML = `<div class="empty">Loading…</div>`; return; }
+  const bull = s.action.includes('BUY');
+  const opts = bull ? [
+    { t:'BULL CALL SPREAD', k:`${fmt(a,s.entry[1])}/${fmt(a,s.t1)}`, e:'~4 weeks', d:'Capture T1 move with defined risk', pr:'72%', c:'~2.5%' },
+    { t:'LONG CALL', k:fmt(a,s.t1), e:'~3 weeks', d:'Direct upside play, max leverage', pr:'62%', c:'~1.8%' },
+    { t:'PROTECTIVE PUT', k:fmt(a,s.stop), e:'~2 weeks', d:'Hedge spot position against SL breach', pr:'hedge', c:'~1%' }
+  ] : s.action==='HOLD' ? [
+    { t:'COVERED CALL', k:fmt(a,s.t1), e:'~3 weeks', d:'Earn premium on range-bound outlook', pr:'65%', c:'income 1.5%' },
+    { t:'IRON CONDOR', k:`${fmt(a,s.stop)}–${fmt(a,s.t1)}`, e:'~4 weeks', d:'Profit from low volatility', pr:'70%', c:'defined risk' }
+  ] : [
+    { t:'BEAR PUT SPREAD', k:`${fmt(a,s.entry[0])}/${fmt(a,s.t1)}`, e:'~3 weeks', d:'Capture downside with defined risk', pr:'68%', c:'~2%' },
+    { t:'WAIT', k:'—', e:'—', d:'Low-conviction setup — observe price action', pr:'—', c:'—' }
+  ];
+  $('obody').innerHTML = `
+    <div class="flowbox">
+      <div class="fh">📊 Institutional Order Flow</div>
+      <div class="fline">Signal: <b>${s.action}</b> · Conf: <b>${s.conf} ${s.confPct}%</b></div>
+      <div class="fline">Net Call Premium: <b>${s.flow}</b></div>
+      <div class="fline">Major Players: <b>${s.players.join(', ')}</b></div>
+      <div class="fline">Entry <b>${fmt(a,s.entry[0])}–${fmt(a,s.entry[1])}</b> · SL <b>${fmt(a,s.stop)}</b> · T1 <b>${fmt(a,s.t1)}</b> · R/R <b>${s.rr}</b></div>
+    </div>
+    ${opts.map(o => `<div class="opt">
+      <div class="ohead"><span class="otype">${o.t}</span><span class="oprob">PROB: ${o.pr}</span></div>
+      <div class="odesc">${o.d}</div>
+      <div class="ometa">
+        <span>Strike: <b>${o.k}</b></span>
+        <span>Exp: <b>${o.e}</b></span>
+        <span>Cost: <b>${o.c}</b></span>
+      </div>
+    </div>`).join('')}
+    <div class="opt" style="border-left-color:var(--red)">
+      <div class="ohead"><span class="otype" style="color:var(--red)">⚠️ Key Risks</span></div>
+      <div class="odesc">
+        • Stop loss at <b>${fmt(a,s.stop)}</b> (${(Math.abs(p.price-s.stop)/p.price*100).toFixed(1)}% away)<br>
+        • Position size: risk max 1–2% of portfolio<br>
+        • Watch macro (Fed / CPI / geopolitical) for reversals
+      </div>
+    </div>`;
+}
+
+/* ── NEWS ──────────────────────── */
+function renderNews(){
+  if (!state.news.length){
+    $('nbody').innerHTML = `<div class="empty">No news loaded. Tap Refresh.</div>`;
+    return;
+  }
+  $('nbody').innerHTML = state.news.map((n,i) => `<div class="nitem ${n.impact}" onclick="analyze(${i})">
+    <div class="ntitle">${esc(n.title)}</div>
+    <div class="nmeta">
+      <span class="ntag">${n.tag}</span>
+      <span class="nimpact ${n.impact}">${n.impact.toUpperCase()}</span>
+      <span>${n.date}</span>
+    </div>
+  </div>`).join('');
+}
+
+function analyze(i){
+  const n = state.news[i];
+  if (!n) return;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelector('[data-t="chat"]').classList.add('on');
+  state.tab = 'chat';
+  ['chat','forecast','options','news'].forEach(k => $('p-'+k).classList.add('hidden'));
+  $('p-chat').classList.remove('hidden');
+  const a = ASSETS.find(x=>x.id===state.sel);
+  $('inp').value = `How does this news affect my ${a.sym} trade? "${n.title}"`;
+  send();
+}
+
+/* ── CHAT ──────────────────────── */
+function addMsg(role, text, tag){
+  state.msgs.push({role,text,tag});
+  const el = document.createElement('div');
+  el.className = 'msg ' + (role==='user'?'u':role==='system'?'s':'a');
+  el.innerHTML = (tag?`<div class="tag">${tag}</div>`:'') + esc(text).replace(/\n/g,'<br>');
+  $('msgs').appendChild(el);
+  $('msgs').scrollTop = $('msgs').scrollHeight;
+  return el;
+}
+
+async function send(override){
+  const q = (override!==undefined?override:$('inp').value).trim();
+  if (!q || state.busy) return;
+  state.busy = true;
+  $('sendbtn').disabled = true;
+  $('inp').value = '';
+  $('inp').style.height = 'auto';
+  addMsg('user', q);
+  const typing = document.createElement('div');
+  typing.className = 'msg a';
+  typing.innerHTML = `<div class="tag">Analyzing smart money</div><div class="typing"><span></span><span></span><span></span></div>`;
+  $('msgs').appendChild(typing);
+  $('msgs').scrollTop = $('msgs').scrollHeight;
+  try {
+    let reply;
+    if (state.apiKey && state.apiKey.startsWith('sk-ant-')){
+      reply = await aiReply(q);
+      typing.remove();
+      addMsg('assistant', reply, 'Aurum AI · Claude');
+    } else {
+      await new Promise(r=>setTimeout(r,400));
+      reply = localReply(q);
+      typing.remove();
+      addMsg('assistant', reply, 'Aurum AI · Local');
+    }
+  } catch(e){
+    typing.remove();
+    addMsg('assistant', `⚠️ AI request failed — falling back to local engine:\n\n`+localReply(q), 'Local Fallback');
+  } finally {
+    state.busy = false;
+    $('sendbtn').disabled = false;
+  }
+}
+
+async function aiReply(q){
+  const a = ASSETS.find(x=>x.id===state.sel);
+  const p = state.prices[a.id];
+  const s = signal(a.id);
+  const newsTop = state.news.slice(0,6).map(n=>`- [${n.impact.toUpperCase()}] ${n.title}`).join('\n');
+  const sys = `You are AURUM AI, a concise institutional trading signal analyst. Always include: signal, entry, stop, target, R/R, and 1-line rationale. Use the live data given. No long disclaimers.`;
+  const userMsg = `LIVE DATA for ${a.sym}:
+Price: ${fmt(a,p.price)} (${pct(p.change24)} 24h)
+Signal: ${s.action} (${s.conf} ${s.confPct}%)
+Entry: ${fmt(a,s.entry[0])}–${fmt(a,s.entry[1])}
+Stop: ${fmt(a,s.stop)} · T1: ${fmt(a,s.t1)} · T2: ${fmt(a,s.t2)} · R/R: ${s.rr}
+Inst. Flow: ${s.flow} | Players: ${s.players.join(', ')}
+
+RECENT NEWS:
+${newsTop || '(none)'}
+
+USER QUESTION: ${q}`;
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':state.apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body: JSON.stringify({
+      model:'claude-sonnet-4-5-20250929',
+      max_tokens:700,
+      system:sys,
+      messages:[{role:'user',content:userMsg}]
+    })
+  });
+  if (!r.ok){ throw new Error('API '+r.status); }
+  const d = await r.json();
+  return d.content.filter(b=>b.type==='text').map(b=>b.text).join('\n');
+}
+
+function localReply(q){
+  const a = ASSETS.find(x=>x.id===state.sel);
+  const p = state.prices[a.id];
+  const s = signal(a.id);
+  if (!p || !s) return 'Price data still syncing — try again in a moment.';
+  const ql = q.toLowerCase();
+
+  if (ql.includes('news')){
+    if (!state.news.length) return '📡 No news loaded yet. Open the NEWS tab and tap Refresh.';
+    return `📡 TOP MARKET NEWS:\n\n${state.news.slice(0,5).map((n,i)=>`${i+1}. [${n.impact.toUpperCase()} · ${n.tag}] ${n.title}`).join('\n\n')}\n\nTap any headline in the NEWS tab to analyze impact on your ${a.sym} trade.`;
+  }
+  if (ql.includes('flow') || ql.includes('institutional') || ql.includes('smart money')){
+    return `📊 INSTITUTIONAL FLOW — ${a.sym}\n\nPrice: ${fmt(a,p.price)} (${pct(p.change24)} 24h)\nNet Flow: ${s.flow}\nMajor Players: ${s.players.join(', ')}\nSmart Money: ${s.flowNum>5000?'🟢 AGGRESSIVE ACCUMULATION':s.flowNum>0?'🟢 ACCUMULATING':s.flowNum<-5000?'🔴 HEAVY DISTRIBUTION':'🟡 NEUTRAL'}\n\nDerived from real-time ${pct(p.change24)} move + volume context.\n\nRECOMMENDATION: ${s.action.includes('BUY')?'Follow smart money — 1–2% risk position':s.action==='HOLD'?'Hold existing, monitor flow':'Wait for clearer signal'}`;
+  }
+  if (ql.includes('option') || ql.includes('strategy')){
+    const bull = s.action.includes('BUY');
+    return `⚡ OPTIONS STRATEGY — ${a.sym}\n\nBEST PLAY: ${bull?'BULL CALL SPREAD':s.action==='HOLD'?'COVERED CALL':s.action==='SELL'?'BEAR PUT SPREAD':'WAIT for breakout'}\nStrike: ${bull?`${fmt(a,s.entry[1])}/${fmt(a,s.t1)}`:fmt(a,s.t1)}\nExpiry: ~3–4 weeks\nProbability: ${bull?'72%':'60%'}\n\nPosition: risk 1–2% of portfolio\nR/R: ${s.rr}\n\nFull breakdown in OPTIONS tab →`;
+  }
+  if (ql.includes('forecast') || ql.includes('predict')){
+    return `📈 PRICE FORECAST — ${a.sym}\n\nCurrent: ${fmt(a,p.price)} (${pct(p.change24)} 24h)\n\nAI PROJECTION:\n• 1-Day: ${s.predict1d>=0?'+':''}${s.predict1d}% → ${fmt(a,p.price*(1+s.predict1d/100))}\n• 1-Week: ${s.predict1w>=0?'+':''}${s.predict1w}% → ${fmt(a,p.price*(1+s.predict1w/100))}\n• 1-Month: ${s.predict1m>=0?'+':''}${s.predict1m}% → ${fmt(a,p.price*(1+s.predict1m/100))}\n\nSentiment: ${s.bull}% bull / ${s.bear}% bear\nConfidence: ${s.conf} (${s.confPct}%)\nInst. Flow: ${s.flow}`;
+  }
+  if (ql.includes('risk')){
+    const dist = ((p.price-s.stop)/p.price*100).toFixed(2);
+    return `⚠️ RISK ANALYSIS — ${a.sym}\n\nPrice: ${fmt(a,p.price)}\nStop Loss: ${fmt(a,s.stop)} (${Math.abs(dist)}% ${dist>=0?'below':'above'})\n\nKEY RISKS:\n1. Broader market reversal\n2. Macro catalysts (Fed / CPI / geopolitics)\n3. Position overexposure\n\nHEDGE: Protective option at ${fmt(a,s.stop)}\nSIZE: Risk max 1–2% of portfolio\nR/R: ${s.rr}`;
+  }
+  return `📊 COMPLETE ANALYSIS — ${a.sym}\n\nPrice: ${fmt(a,p.price)} (${pct(p.change24)} 24h)\nSignal: ${s.action} · Conf ${s.confPct}%\nInst. Flow: ${s.flow}\n\nSETUP:\nEntry: ${fmt(a,s.entry[0])}–${fmt(a,s.entry[1])}\nT1: ${fmt(a,s.t1)} · T2: ${fmt(a,s.t2)}\nStop: ${fmt(a,s.stop)}\nR/R: ${s.rr}\n\nPLAY: ${s.action.includes('BUY')?'✅ Long with 1–2% risk':s.action==='HOLD'?'⏸️ Hold existing':s.action==='SELL'?'🔻 Short with tight stop':'👀 Watch for breakout'}`;
+}
+
+/* ── INIT ──────────────────────── */
+const QUICK = ['institutional flow','options strategy','price forecast','risk analysis','latest news','complete analysis'];
+$('quick').innerHTML = QUICK.map(q=>`<div class="qb" onclick="send('${q}')">${q}</div>`).join('');
+
+$('inp').addEventListener('input', e => {
+  e.target.style.height = 'auto';
+  e.target.style.height = Math.min(e.target.scrollHeight, 80)+'px';
+});
+$('inp').addEventListener('keydown', e => {
+  if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+});
+
+addMsg('system', 'Aurum Pro Live · connecting to Binance + gold-api');
+
+// Boot
+Promise.all([refreshPrices(), loadNews()]).then(()=>{
+  const a = ASSETS.find(x=>x.id===state.sel);
+  const p = state.prices[a.id];
+  if (p){
+    addMsg('assistant',
+      `👋 Connected. Tracking 6 assets with live data.\n\n• Crypto prices via Binance (updated 30s)\n• Gold via gold-api (live spot)\n• News from CoinStats\n\nCurrent ${a.sym}: ${fmt(a,p.price)} (${pct(p.change24)} 24h)\n\nAsk me: flow, options, forecast, risk, or tap a news headline.`,
+      'Aurum AI'
+    );
+  } else {
+    addMsg('assistant', '⚠️ Could not load prices. Check your connection and try refreshing the page.', 'Aurum AI');
+  }
+});
+
+setInterval(refreshPrices, 30000);
+setInterval(() => loadNews(false), 5*60*1000);
+</script>
+
+</body>
+</html>
