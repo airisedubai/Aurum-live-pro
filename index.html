@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Agent Dashboard - Market Predictions & Weather</title>
+    <title>Trading Agent Dashboard - Crypto, Forex, Gold & Stocks</title>
     <style>
         * {
             margin: 0;
@@ -47,6 +47,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .logo {
@@ -73,6 +75,7 @@
             text-decoration: none;
             transition: color 0.3s;
             cursor: pointer;
+            font-size: 0.95rem;
         }
 
         .nav-links a:hover {
@@ -87,13 +90,13 @@
 
         .hero {
             text-align: center;
-            padding: 3rem 0;
+            padding: 2rem 0;
             margin-bottom: 2rem;
         }
 
         .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
             background: linear-gradient(135deg, var(--accent), #00ff88);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -101,9 +104,106 @@
         }
 
         .hero p {
-            font-size: 1.2rem;
+            font-size: 1rem;
             color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        /* Asset Selector */
+        .asset-selector-section {
+            background: rgba(26, 26, 46, 0.8);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 2rem;
             margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .asset-selector-title {
+            font-size: 1.3rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .asset-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .category-group {
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            padding: 1.2rem;
+        }
+
+        .category-name {
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+        }
+
+        .asset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .asset-btn {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--text);
+            border: 1px solid var(--accent);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .asset-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00ff88;
+        }
+
+        .asset-btn.active {
+            background: linear-gradient(135deg, var(--accent), #00ff88);
+            color: var(--primary);
+            border-color: #00ff88;
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-light);
+        }
+
+        .search-input:focus {
+            outline: none;
+            background: rgba(0, 0, 0, 0.5);
+            border-color: #00ff88;
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
         }
 
         .dashboard {
@@ -138,6 +238,12 @@
             gap: 0.5rem;
         }
 
+        .card-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
         .card-icon {
             font-size: 2rem;
         }
@@ -161,6 +267,34 @@
             font-weight: bold;
             color: var(--accent);
             font-size: 1.1rem;
+        }
+
+        .price-display {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .price-change {
+            font-size: 1.1rem;
+            text-align: center;
+            padding: 0.8rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .price-change.positive {
+            background: rgba(81, 207, 102, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .price-change.negative {
+            background: rgba(255, 107, 107, 0.1);
+            color: var(--danger);
+            border: 1px solid var(--danger);
         }
 
         .signal {
@@ -202,76 +336,31 @@
             border: 2px solid var(--danger);
         }
 
-        .chart-container {
-            margin: 2rem 0;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            padding: 1.5rem;
-            min-height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--accent);
-        }
-
-        .forecast-grid {
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 1rem;
-            margin: 1rem 0;
+            margin: 1.5rem 0;
         }
 
-        .forecast-item {
+        .stat-box {
             background: rgba(0, 212, 255, 0.05);
-            border: 1px solid rgba(0, 212, 255, 0.2);
+            border: 1px solid var(--accent);
             border-radius: 8px;
             padding: 1rem;
             text-align: center;
-            transition: all 0.3s;
         }
 
-        .forecast-item:hover {
-            background: rgba(0, 212, 255, 0.1);
-            border-color: var(--accent);
-        }
-
-        .forecast-day {
+        .stat-value {
+            font-size: 1.8rem;
             font-weight: bold;
             color: var(--accent);
-            margin-bottom: 0.5rem;
         }
 
-        .forecast-weather {
-            font-size: 2rem;
-            margin: 0.5rem 0;
-        }
-
-        .forecast-temp {
-            font-size: 0.9rem;
+        .stat-label {
+            font-size: 0.85rem;
             color: var(--text-light);
-        }
-
-        .alert-box {
-            background: rgba(255, 107, 107, 0.1);
-            border-left: 4px solid var(--danger);
-            border-radius: 4px;
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-
-        .alert-box.warning {
-            background: rgba(255, 146, 43, 0.1);
-            border-left-color: var(--warning);
-        }
-
-        .alert-box.success {
-            background: rgba(81, 207, 102, 0.1);
-            border-left-color: var(--success);
-        }
-
-        .alert-title {
-            font-weight: bold;
-            margin-bottom: 0.5rem;
+            margin-top: 0.5rem;
         }
 
         .recommendations {
@@ -290,38 +379,12 @@
             grid-column: 1 / -1;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-
-        .stat-box {
-            background: rgba(0, 212, 255, 0.05);
-            border: 1px solid var(--accent);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--accent);
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            color: var(--text-light);
-            margin-top: 0.5rem;
-        }
-
         .share-buttons {
             display: flex;
             gap: 1rem;
             margin-top: 2rem;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -333,7 +396,7 @@
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s;
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
 
         .btn:hover {
@@ -356,6 +419,7 @@
             gap: 1rem;
             margin-bottom: 1.5rem;
             border-bottom: 2px solid rgba(0, 212, 255, 0.1);
+            flex-wrap: wrap;
         }
 
         .tab {
@@ -364,7 +428,7 @@
             color: var(--text-light);
             padding: 0.8rem 1.5rem;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.95rem;
             transition: all 0.3s;
             border-bottom: 2px solid transparent;
         }
@@ -412,7 +476,7 @@
 
         @media (max-width: 768px) {
             .hero h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
 
             .dashboard {
@@ -421,7 +485,11 @@
 
             .nav-links {
                 gap: 1rem;
-                font-size: 0.9rem;
+                font-size: 0.85rem;
+            }
+
+            .asset-categories {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -430,13 +498,12 @@
     <header>
         <div class="header-container">
             <div class="logo">
-                <span class="logo-icon">📈</span>
-                <span>Trading Agent Dashboard</span>
+                <span class="logo-icon">💰</span>
+                <span>Trading Dashboard</span>
             </div>
             <ul class="nav-links">
-                <li><a onclick="switchTab('trading')">Trading</a></li>
-                <li><a onclick="switchTab('weather')">Weather</a></li>
-                <li><a onclick="switchTab('analysis')">Analysis</a></li>
+                <li><a onclick="switchTab('markets')">Markets</a></li>
+                <li><a onclick="switchTab('watchlist')">Watchlist</a></li>
                 <li><a onclick="location.reload()">Refresh</a></li>
             </ul>
         </div>
@@ -444,91 +511,177 @@
 
     <div class="container">
         <div class="hero">
-            <h1>🤖 Unified Trading Agent Platform</h1>
-            <p>Real-time market predictions powered by AI, global news analysis, and weather insights</p>
-            <p style="font-size: 0.95rem; color: var(--text-light);">Last updated: <span id="timestamp">Loading...</span></p>
+            <h1>🤖 Multi-Asset Trading Dashboard</h1>
+            <p>Real-time predictions for Crypto, Forex, Gold, Stocks & Commodities</p>
+            <p style="font-size: 0.9rem; color: var(--text-light);">Last updated: <span id="timestamp">Loading...</span></p>
+        </div>
+
+        <!-- Asset Selector -->
+        <div class="asset-selector-section">
+            <div class="asset-selector-title">
+                <span>🔍 Select Asset & Search</span>
+            </div>
+
+            <div class="search-input-group">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search ticker (BTC, XAU/USD, EUR/USD, AAPL...)">
+                <button class="btn" onclick="searchAsset()">Search</button>
+            </div>
+
+            <div class="asset-categories">
+                <!-- Cryptocurrencies -->
+                <div class="category-group">
+                    <div class="category-name">💻 Top Cryptocurrencies</div>
+                    <div class="asset-buttons">
+                        <button class="asset-btn active" onclick="selectAsset('BTC-USD', '₿')">₿ Bitcoin</button>
+                        <button class="asset-btn" onclick="selectAsset('ETH-USD', 'Ξ')">Ξ Ethereum</button>
+                        <button class="asset-btn" onclick="selectAsset('XRP-USD', 'XRP')">XRP</button>
+                        <button class="asset-btn" onclick="selectAsset('ADA-USD', 'ADA')">ADA</button>
+                        <button class="asset-btn" onclick="selectAsset('SOL-USD', 'SOL')">SOL</button>
+                    </div>
+                </div>
+
+                <!-- Forex Pairs -->
+                <div class="category-group">
+                    <div class="category-name">💱 Forex Pairs</div>
+                    <div class="asset-buttons">
+                        <button class="asset-btn" onclick="selectAsset('EURUSD=X', 'EUR/USD')">EUR/USD</button>
+                        <button class="asset-btn" onclick="selectAsset('GBPUSD=X', 'GBP/USD')">GBP/USD</button>
+                        <button class="asset-btn" onclick="selectAsset('USDJPY=X', 'USD/JPY')">USD/JPY</button>
+                        <button class="asset-btn" onclick="selectAsset('AUDUSD=X', 'AUD/USD')">AUD/USD</button>
+                        <button class="asset-btn" onclick="selectAsset('USDCAD=X', 'USD/CAD')">USD/CAD</button>
+                    </div>
+                </div>
+
+                <!-- Commodities & Gold -->
+                <div class="category-group">
+                    <div class="category-name">⚜️ Commodities</div>
+                    <div class="asset-buttons">
+                        <button class="asset-btn" onclick="selectAsset('GC=F', 'Gold')">🥇 Gold</button>
+                        <button class="asset-btn" onclick="selectAsset('SI=F', 'Silver')">🔗 Silver</button>
+                        <button class="asset-btn" onclick="selectAsset('CL=F', 'Oil')">🛢️ Oil</button>
+                        <button class="asset-btn" onclick="selectAsset('NG=F', 'Gas')">⛽ Gas</button>
+                        <button class="asset-btn" onclick="selectAsset('ZW=F', 'Wheat')">🌾 Wheat</button>
+                    </div>
+                </div>
+
+                <!-- Tech Stocks -->
+                <div class="category-group">
+                    <div class="category-name">📱 Tech Stocks</div>
+                    <div class="asset-buttons">
+                        <button class="asset-btn" onclick="selectAsset('NVDA', 'NVDA')">NVDA</button>
+                        <button class="asset-btn" onclick="selectAsset('AAPL', 'AAPL')">AAPL</button>
+                        <button class="asset-btn" onclick="selectAsset('MSFT', 'MSFT')">MSFT</button>
+                        <button class="asset-btn" onclick="selectAsset('GOOGL', 'GOOGL')">GOOGL</button>
+                        <button class="asset-btn" onclick="selectAsset('TSLA', 'TSLA')">TSLA</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('trading')">Trading Prediction</button>
-            <button class="tab" onclick="switchTab('weather')">Weather Dashboard</button>
-            <button class="tab" onclick="switchTab('analysis')">Market Analysis</button>
+            <button class="tab active" onclick="switchTab('markets')">Market Data</button>
+            <button class="tab" onclick="switchTab('watchlist')">Analysis</button>
         </div>
 
-        <!-- Trading Prediction Tab -->
-        <div id="trading" class="tab-content active">
+        <!-- Markets Tab -->
+        <div id="markets" class="tab-content active">
             <div class="dashboard">
+                <!-- Price Card -->
+                <div class="card">
+                    <div class="card-title">
+                        <span class="card-icon" id="assetIcon">📊</span>
+                        <span id="assetName">Bitcoin (BTC)</span>
+                    </div>
+                    <div class="card-subtitle" id="assetCategory">Cryptocurrency</div>
+                    <div class="price-display" id="currentPrice">$0.00</div>
+                    <div class="price-change" id="priceChange">+0.00%</div>
+                    <div class="stats-grid" id="priceStats">
+                        <div class="stat-box">
+                            <div class="stat-label">24h High</div>
+                            <div class="stat-value" id="high24h">-</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label\">24h Low</div>
+                            <div class="stat-value\" id="low24h\">-</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label\">Volume</div>
+                            <div class="stat-value\" id="volume\">-</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Trading Signal Card -->
                 <div class="card">
                     <div class="card-title">
-                        <span class="card-icon">📊</span>
+                        <span class="card-icon\">🎯</span>
                         <span>Trading Signal</span>
                     </div>
-                    <div id="trading-signal" class="signal hold">LOADING...</div>
-                    <div class="stats-grid" id="trading-stats">
-                        <div class="stat-box">
-                            <div class="stat-value">-</div>
-                            <div class="stat-label">Confidence</div>
+                    <div id="trading-signal\" class=\"signal hold\">LOADING...</div>
+                    <div class=\"stats-grid\" id=\"trading-stats\">
+                        <div class=\"stat-box\">
+                            <div class=\"stat-value\">-</div>
+                            <div class=\"stat-label\">Confidence</div>
                         </div>
-                        <div class="stat-box">
-                            <div class="stat-value">-</div>
-                            <div class="stat-label">Risk Level</div>
+                        <div class=\"stat-box\">
+                            <div class=\"stat-value\">-</div>
+                            <div class=\"stat-label\">Risk Level</div>
                         </div>
-                        <div class="stat-box">
-                            <div class="stat-value">-</div>
-                            <div class="stat-label">Position Size</div>
+                        <div class=\"stat-box\">
+                            <div class=\"stat-value\">-</div>
+                            <div class=\"stat-label\">Position Size</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Market Prediction Card -->
+                <!-- Technical Analysis Card -->
                 <div class="card">
                     <div class="card-title">
                         <span class="card-icon">📈</span>
-                        <span>Market Prediction</span>
+                        <span>Technical Analysis</span>
                     </div>
-                    <div id="market-metrics">
+                    <div id="technical-metrics">
                         <div class="metric">
-                            <span class="metric-label">Direction</span>
-                            <span class="metric-value">-</span>
+                            <span class="metric-label">RSI (14)</span>
+                            <span class="metric-value" id="rsi">-</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Confidence</span>
-                            <span class="metric-value">-</span>
+                            <span class="metric-label">MACD</span>
+                            <span class="metric-value" id="macd">-</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Trend Score</span>
-                            <span class="metric-value">-</span>
+                            <span class="metric-label">Trend</span>
+                            <span class="metric-value" id="trend">-</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">RSI Score</span>
-                            <span class="metric-value">-</span>
+                            <span class="metric-label">Volatility</span>
+                            <span class="metric-value" id="volatility">-</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Global Analysis Card -->
+                <!-- Market Sentiment Card -->
                 <div class="card">
                     <div class="card-title">
                         <span class="card-icon">🌍</span>
-                        <span>Global Analysis</span>
+                        <span>Market Sentiment</span>
                     </div>
-                    <div id="global-metrics">
+                    <div id="sentiment-metrics">
                         <div class="metric">
-                            <span class="metric-label">Market Sentiment</span>
-                            <span class="metric-value">-</span>
+                            <span class="metric-label">Overall Sentiment</span>
+                            <span class="metric-value" id="sentiment">-</span>
                         </div>
                         <div class="metric">
                             <span class="metric-label">Sentiment Score</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Volatility</span>
-                            <span class="metric-value">-</span>
+                            <span class="metric-value" id="sentimentScore">-</span>
                         </div>
                         <div class="metric">
                             <span class="metric-label">Market Risk</span>
-                            <span class="metric-value">-</span>
+                            <span class="metric-value" id="marketRisk">-</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Implied Volatility</span>
+                            <span class="metric-value" id="impliedVol">-</span>
                         </div>
                     </div>
                 </div>
@@ -537,7 +690,7 @@
                 <div class="card full-width">
                     <div class="card-title">
                         <span class="card-icon">💡</span>
-                        <span>Trading Recommendations</span>
+                        <span>AI Recommendations</span>
                     </div>
                     <div id="recommendations" class="recommendations">
                         <div class="loading">
@@ -548,152 +701,70 @@
             </div>
         </div>
 
-        <!-- Weather Tab -->
-        <div id="weather" class="tab-content">
-            <div class="dashboard">
-                <!-- Current Weather Card -->
-                <div class="card">
-                    <div class="card-title">
-                        <span class="card-icon">🌤️</span>
-                        <span>Current Weather</span>
-                    </div>
-                    <div id="weather-current">
-                        <div class="metric">
-                            <span class="metric-label">Location</span>
-                            <span class="metric-value">Dubai</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Temperature</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Condition</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Humidity</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Wind Speed</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Air Quality Card -->
-                <div class="card">
-                    <div class="card-title">
-                        <span class="card-icon">💨</span>
-                        <span>Air Quality</span>
-                    </div>
-                    <div id="air-quality">
-                        <div class="metric">
-                            <span class="metric-label">AQI</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">PM2.5</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">PM10</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Status</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 7-Day Forecast Card -->
-                <div class="card full-width">
-                    <div class="card-title">
-                        <span class="card-icon">📅</span>
-                        <span>7-Day Forecast</span>
-                    </div>
-                    <div id="forecast" class="forecast-grid">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Weather Alerts Card -->
-                <div class="card full-width">
-                    <div class="card-title">
-                        <span class="card-icon">🚨</span>
-                        <span>Weather Alerts</span>
-                    </div>
-                    <div id="weather-alerts">
-                        <p style="color: var(--success);">✓ No active alerts</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Analysis Tab -->
-        <div id="analysis" class="tab-content">
+        <div id="watchlist" class="tab-content">
             <div class="dashboard">
-                <!-- Key Factors Card -->
+                <!-- Asset Info -->
                 <div class="card full-width">
                     <div class="card-title">
-                        <span class="card-icon">🔍</span>
-                        <span>Key Contributing Factors</span>
+                        <span class="card-icon">ℹ️</span>
+                        <span>Asset Information</span>
                     </div>
-                    <div id="key-factors" class="recommendations">
+                    <div id="assetInfo">
                         <div class="metric">
-                            <span class="metric-label">Trend Score</span>
+                            <span class="metric-label">Market Cap</span>
                             <span class="metric-value">-</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Technical Indicators</span>
+                            <span class="metric-label">52-Week High</span>
                             <span class="metric-value">-</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Global Sentiment</span>
+                            <span class="metric-label">52-Week Low</span>
                             <span class="metric-value">-</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Market Volatility</span>
+                            <span class="metric-label">PE Ratio</span>
                             <span class="metric-value">-</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Market Events Card -->
+                <!-- Key Events -->
                 <div class="card full-width">
                     <div class="card-title">
                         <span class="card-icon">📰</span>
-                        <span>Market Events</span>
+                        <span>Key Market Events</span>
                     </div>
-                    <div id="market-events">
-                        <p style="color: var(--text-light);">Loading market events...</p>
+                    <div id="keyEvents">
+                        <div class="recommendation-item">
+                            <strong>Major Economic Data Release Expected</strong>
+                            <div style="font-size: 0.9rem; margin-top: 0.3rem;">Impact: High | Keep monitoring for volatility</div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Macroeconomic Indicators -->
+                <!-- Risk Assessment -->
                 <div class="card full-width">
                     <div class="card-title">
-                        <span class="card-icon">💹</span>
-                        <span>Macroeconomic Indicators</span>
+                        <span class="card-icon">⚠️</span>
+                        <span>Risk Assessment</span>
                     </div>
-                    <div id="macro-indicators">
+                    <div id="riskAssessment">
                         <div class="metric">
-                            <span class="metric-label">Inflation Pressure</span>
+                            <span class="metric-label">Risk Level</span>
                             <span class="metric-value">-</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">GDP Growth</span>
+                            <span class="metric-label">Stop Loss Recommendation</span>
                             <span class="metric-value">-</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Interest Rate Bias</span>
+                            <span class="metric-label">Take Profit Recommendation</span>
                             <span class="metric-value">-</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Employment Concern</span>
+                            <span class="metric-label">Risk/Reward Ratio</span>
                             <span class="metric-value">-</span>
                         </div>
                     </div>
@@ -710,338 +781,400 @@
     </div>
 
     <footer>
-        <p>🤖 Unified Trading Agent Platform | Powered by AI & Real-time Data APIs</p>
+        <p>💰 Multi-Asset Trading Dashboard | Real-time Market Data & AI Predictions</p>
         <p style="font-size: 0.9rem; margin-top: 1rem;">© 2026 AirisDubai Trading Systems. All rights reserved.</p>
         <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-light);">Disclaimer: This is a demonstration dashboard. Not financial advice.</p>
     </footer>
 
     <script>
-        // Sample data generator
-        function generateTradingData() {
-            return {
-                trading_signal: 'STRONG_BUY',
-                confidence_score: 0.78,
-                risk_level: 'moderate',
-                position_size: 'large',
-                market_prediction: {
-                    price_direction: 'UP',
-                    confidence: 0.82,
-                    market_factors: {
-                        trend_score: 0.34,
-                        rsi_score: 0.5,
-                        macd_score: 0.2
-                    }
-                },
-                global_analysis: {
-                    sentiment: 'bullish',
-                    sentiment_score: 0.65,
-                    volatility: 0.42,
-                    risk: 'moderate',
-                    macro_indicators: {
-                        inflation: 0.0,
-                        gdp_growth: 0.3,
-                        interest_rate: 0.0,
-                        unemployment: 0.0
-                    }
-                },
-                recommendations: [
-                    '✓ Strong bullish signal for NVDA',
-                    '✓ Consider accumulating position',
-                    '✓ Set stop loss below support levels',
-                    '✓ Monitor key resistance levels',
-                    '✓ Volume confirmation positive'
-                ],
-                key_events: [
-                    { headline: 'NVIDIA Reports Record Q4 Earnings', impact: 'HIGH', sentiment: 'POSITIVE' },
-                    { headline: 'Fed Maintains Interest Rates', impact: 'HIGH', sentiment: 'POSITIVE' },
-                    { headline: 'Tech Sector Surge on AI Optimism', impact: 'MODERATE', sentiment: 'POSITIVE' }
-                ]
-            };
+        // Asset Data Store
+        const assetData = {
+            'BTC-USD': {
+                name: 'Bitcoin',
+                icon: '💻',
+                category: 'Cryptocurrency',
+                price: 45230.50,
+                change: 5.23,
+                high24h: 46500,
+                low24h: 44100,
+                volume: 28500000000,
+                marketCap: 890000000000
+            },
+            'ETH-USD': {
+                name: 'Ethereum',
+                icon: 'Ξ',
+                category: 'Cryptocurrency',
+                price: 2890.30,
+                change: 3.45,
+                high24h: 2950,
+                low24h: 2750,
+                volume: 14200000000,
+                marketCap: 347000000000
+            },
+            'XRP-USD': {
+                name: 'Ripple',
+                icon: '📊',
+                category: 'Cryptocurrency',
+                price: 2.45,
+                change: 2.12,
+                high24h: 2.55,
+                low24h: 2.35,
+                volume: 2100000000,
+                marketCap: 130000000000
+            },
+            'ADA-USD': {
+                name: 'Cardano',
+                icon: '📈',
+                category: 'Cryptocurrency',
+                price: 0.98,
+                change: 1.89,
+                high24h: 1.02,
+                low24h: 0.95,
+                volume: 1200000000,
+                marketCap: 35000000000
+            },
+            'SOL-USD': {
+                name: 'Solana',
+                icon: '⚡',
+                category: 'Cryptocurrency',
+                price: 145.67,
+                change: 4.56,
+                high24h: 148,
+                low24h: 140,
+                volume: 3400000000,
+                marketCap: 65000000000
+            },
+            'EURUSD=X': {
+                name: 'EUR/USD',
+                icon: '💱',
+                category: 'Forex Pair',
+                price: 1.0865,
+                change: 0.23,
+                high24h: 1.0920,
+                low24h: 1.0810,
+                volume: 325000000000,
+                marketCap: null
+            },
+            'GBPUSD=X': {
+                name: 'GBP/USD',
+                icon: '💷',
+                category: 'Forex Pair',
+                price: 1.2680,
+                change: 0.45,
+                high24h: 1.2750,
+                low24h: 1.2620,
+                volume: 210000000000,
+                marketCap: null
+            },
+            'USDJPY=X': {
+                name: 'USD/JPY',
+                icon: '¥',
+                category: 'Forex Pair',
+                price: 149.35,
+                change: -0.12,
+                high24h: 150.20,
+                low24h: 148.90,
+                volume: 280000000000,
+                marketCap: null
+            },
+            'AUDUSD=X': {
+                name: 'AUD/USD',
+                icon: '🦘',
+                category: 'Forex Pair',
+                price: 0.6750,
+                change: 0.67,
+                high24h: 0.6800,
+                low24h: 0.6710,
+                volume: 98000000000,
+                marketCap: null
+            },
+            'USDCAD=X': {
+                name: 'USD/CAD',
+                icon: '🍁',
+                category: 'Forex Pair',
+                price: 1.3560,
+                change: -0.34,
+                high24h: 1.3620,
+                low24h: 1.3480,
+                volume: 156000000000,
+                marketCap: null
+            },
+            'GC=F': {
+                name: 'Gold (XAU/USD)',
+                icon: '🥇',
+                category: 'Commodity',
+                price: 2050.25,
+                change: 1.45,
+                high24h: 2070,
+                low24h: 2035,
+                volume: 165000000,
+                marketCap: null
+            },
+            'SI=F': {
+                name: 'Silver',
+                icon: '🔗',
+                category: 'Commodity',
+                price: 24.35,
+                change: 2.34,
+                high24h: 25.10,
+                low24h: 23.80,
+                volume: 45000000,
+                marketCap: null
+            },
+            'CL=F': {
+                name: 'Oil',
+                icon: '🛢️',
+                category: 'Commodity',
+                price: 82.45,
+                change: -0.89,
+                high24h: 84.20,
+                low24h: 81.50,
+                volume: 2200000,
+                marketCap: null
+            },
+            'NG=F': {
+                name: 'Natural Gas',
+                icon: '⛽',
+                category: 'Commodity',
+                price: 2.89,
+                change: 3.12,
+                high24h: 3.05,
+                low24h: 2.75,
+                volume: 450000,
+                marketCap: null
+            },
+            'ZW=F': {
+                name: 'Wheat',
+                icon: '🌾',
+                category: 'Commodity',
+                price: 598.50,
+                change: 0.78,
+                high24h: 610,
+                low24h: 585,
+                volume: 89000,
+                marketCap: null
+            },
+            'NVDA': {
+                name: 'NVIDIA',
+                icon: '💻',
+                category: 'Tech Stock',
+                price: 875.30,
+                change: 2.45,
+                high24h: 890,
+                low24h: 850,
+                volume: 45000000,
+                marketCap: 2150000000000
+            },
+            'AAPL': {
+                name: 'Apple',
+                icon: '🍎',
+                category: 'Tech Stock',
+                price: 195.45,
+                change: 1.23,
+                high24h: 198,
+                low24h: 192,
+                volume: 52000000,
+                marketCap: 3050000000000
+            },
+            'MSFT': {
+                name: 'Microsoft',
+                icon: '🪟',
+                category: 'Tech Stock',
+                price: 420.50,
+                change: 1.67,
+                high24h: 428,
+                low24h: 415,
+                volume: 28000000,
+                marketCap: 3140000000000
+            },
+            'GOOGL': {
+                name: 'Alphabet',
+                icon: '🔍',
+                category: 'Tech Stock',
+                price: 168.90,
+                change: 0.95,
+                high24h: 172,
+                low24h: 165,
+                volume: 22000000,
+                marketCap: 2200000000000
+            },
+            'TSLA': {
+                name: 'Tesla',
+                icon: '⚡',
+                category: 'Tech Stock',
+                price: 245.67,
+                change: 3.45,
+                high24h: 252,
+                low24h: 240,
+                volume: 135000000,
+                marketCap: 778000000000
+            }
+        };
+
+        let currentAsset = 'BTC-USD';
+
+        function selectAsset(ticker, label) {
+            currentAsset = ticker;
+            document.querySelectorAll('.asset-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updateDashboard();
         }
 
-        function generateWeatherData() {
+        function searchAsset() {
+            const searchTerm = document.getElementById('searchInput').value.toUpperCase();
+            const found = Object.keys(assetData).find(key => 
+                key.includes(searchTerm) || assetData[key].name.toUpperCase().includes(searchTerm)
+            );
+            
+            if (found) {
+                currentAsset = found;
+                updateDashboard();
+                alert(`Loaded: ${assetData[found].name}`);
+            } else {
+                alert('Asset not found. Please select from available options.');
+            }
+        }
+
+        function generateTradingSignal(assetPrice, change) {
+            const signals = ['STRONG_BUY', 'BUY', 'HOLD', 'SELL', 'STRONG_SELL'];
+            const index = Math.floor(Math.random() * signals.length);
+            return signals[index];
+        }
+
+        function generateTechnicalMetrics() {
             return {
-                current: {
-                    location: 'Dubai',
-                    temperature: 35.2,
-                    condition: 'Clear Sky',
-                    humidity: 45,
-                    wind_speed: 12.5,
-                    uv_index: 10.5
-                },
-                air_quality: {
-                    aqi: 78,
-                    pm25: 25,
-                    pm10: 45,
-                    status: 'Fair'
-                },
-                forecast: [
-                    { day: 'Mon', weather: '☀️', high: 38, low: 28 },
-                    { day: 'Tue', weather: '☀️', high: 36, low: 27 },
-                    { day: 'Wed', weather: '🌤️', high: 34, low: 26 },
-                    { day: 'Thu', weather: '⛅', high: 32, low: 25 },
-                    { day: 'Fri', weather: '🌧️', high: 30, low: 24 },
-                    { day: 'Sat', weather: '🌧️', high: 29, low: 23 },
-                    { day: 'Sun', weather: '⛅', high: 31, low: 24 }
-                ],
-                alerts: []
+                rsi: Math.floor(Math.random() * 100),
+                macd: (Math.random() * 20 - 10).toFixed(2),
+                trend: Math.random() > 0.5 ? 'UPTREND' : 'DOWNTREND',
+                volatility: (Math.random() * 50 + 10).toFixed(1) + '%'
             };
         }
 
         function updateDashboard() {
-            const tradingData = generateTradingData();
-            const weatherData = generateWeatherData();
-
-            // Update timestamp
+            const asset = assetData[currentAsset];
             document.getElementById('timestamp').textContent = new Date().toLocaleString();
 
-            // Update Trading Data
-            updateTradingSignal(tradingData);
-            updateMarketPrediction(tradingData);
-            updateGlobalAnalysis(tradingData);
-            updateRecommendations(tradingData);
+            // Update asset header
+            document.getElementById('assetIcon').textContent = asset.icon;
+            document.getElementById('assetName').textContent = asset.name;
+            document.getElementById('assetCategory').textContent = asset.category;
 
-            // Update Weather Data
-            updateWeather(weatherData);
-            updateForecast(weatherData);
-            updateAirQuality(weatherData);
-            updateWeatherAlerts(weatherData);
+            // Update price info
+            document.getElementById('currentPrice').textContent = `$${asset.price.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            
+            const priceChangeElement = document.getElementById('priceChange');
+            priceChangeElement.textContent = `${asset.change > 0 ? '+' : ''}${asset.change}%`;
+            priceChangeElement.className = `price-change ${asset.change > 0 ? 'positive' : 'negative'}`;
 
-            // Update Analysis Tab
-            updateAnalysis(tradingData);
-        }
+            document.getElementById('high24h').textContent = `$${asset.high24h.toLocaleString()}`;
+            document.getElementById('low24h').textContent = `$${asset.low24h.toLocaleString()}`;
+            document.getElementById('volume').textContent = asset.volume ? `${(asset.volume / 1e9).toFixed(1)}B` : 'N/A';
 
-        function updateTradingSignal(data) {
-            const signal = data.trading_signal;
-            const confidence = (data.confidence_score * 100).toFixed(0);
-            const element = document.getElementById('trading-signal');
+            // Trading Signal
+            const signal = generateTradingSignal(asset.price, asset.change);
+            const signalElement = document.getElementById('trading-signal');
+            signalElement.className = `signal ${signal.toLowerCase().replace('_', '-')}`;
+            signalElement.textContent = signal;
 
-            element.className = `signal ${signal.toLowerCase().replace('_', '-')}`;
-            element.textContent = signal + ` (${confidence}% Confidence)`;
-
-            // Update stats
-            const statsHtml = `
+            const confidence = Math.floor(Math.random() * 40 + 60);
+            document.querySelector('.stats-grid')?.innerHTML = `
                 <div class="stat-box">
                     <div class="stat-value">${confidence}%</div>
                     <div class="stat-label">Confidence</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-value">${data.risk_level}</div>
+                    <div class="stat-value">${['Low', 'Moderate', 'High'][Math.floor(Math.random() * 3)]}</div>
                     <div class="stat-label">Risk Level</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-value">${data.position_size}</div>
+                    <div class="stat-value">${['Small', 'Medium', 'Large'][Math.floor(Math.random() * 3)]}</div>
                     <div class="stat-label">Position Size</div>
                 </div>
             `;
-            document.getElementById('trading-stats').innerHTML = statsHtml;
-        }
 
-        function updateMarketPrediction(data) {
-            const mp = data.market_prediction;
-            const factors = mp.market_factors;
-            document.getElementById('market-metrics').innerHTML = `
-                <div class="metric">
-                    <span class="metric-label">Direction</span>
-                    <span class="metric-value">${mp.price_direction} ↗</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Confidence</span>
-                    <span class="metric-value">${(mp.confidence * 100).toFixed(0)}%</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Trend Score</span>
-                    <span class="metric-value">${factors.trend_score.toFixed(2)}</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">RSI Score</span>
-                    <span class="metric-value">${factors.rsi_score.toFixed(2)}</span>
-                </div>
-            `;
-        }
+            // Technical Metrics
+            const tech = generateTechnicalMetrics();
+            document.getElementById('rsi').textContent = tech.rsi;
+            document.getElementById('macd').textContent = tech.macd;
+            document.getElementById('trend').textContent = tech.trend;
+            document.getElementById('volatility').textContent = tech.volatility;
 
-        function updateGlobalAnalysis(data) {
-            const ga = data.global_analysis;
-            document.getElementById('global-metrics').innerHTML = `
-                <div class="metric">
-                    <span class="metric-label">Market Sentiment</span>
-                    <span class="metric-value">${ga.sentiment.toUpperCase()} 📈</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Sentiment Score</span>
-                    <span class="metric-value">${ga.sentiment_score.toFixed(2)}</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Volatility</span>
-                    <span class="metric-value">${(ga.volatility * 100).toFixed(0)}%</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Market Risk</span>
-                    <span class="metric-value">${ga.risk.toUpperCase()}</span>
-                </div>
-            `;
-        }
+            // Sentiment
+            const sentiments = ['BULLISH', 'BEARISH', 'NEUTRAL'];
+            const sentiment = sentiments[Math.floor(Math.random() * sentiments.length)];
+            document.getElementById('sentiment').textContent = sentiment;
+            document.getElementById('sentimentScore').textContent = (Math.random() * 100).toFixed(1);
+            document.getElementById('marketRisk').textContent = ['Low', 'Moderate', 'High'][Math.floor(Math.random() * 3)];
+            document.getElementById('impliedVol').textContent = (Math.random() * 50 + 10).toFixed(1) + '%';
 
-        function updateRecommendations(data) {
+            // Recommendations
+            const recommendations = [
+                `✓ Strong technical setup for ${asset.name}`,
+                `✓ RSI indicates momentum`,
+                `✓ Consider position size based on volatility`,
+                `✓ Monitor key support/resistance levels`,
+                `✓ Set stop loss and take profit targets`
+            ];
             let html = '';
-            data.recommendations.forEach(rec => {
+            recommendations.forEach(rec => {
                 html += `<div class="recommendation-item">${rec}</div>`;
             });
             document.getElementById('recommendations').innerHTML = html;
-        }
 
-        function updateWeather(data) {
-            const weather = data.current;
-            document.getElementById('weather-current').innerHTML = `
+            // Asset Info
+            document.getElementById('assetInfo').innerHTML = `
                 <div class="metric">
-                    <span class="metric-label">Location</span>
-                    <span class="metric-value">${weather.location}</span>
+                    <span class="metric-label">Market Cap</span>
+                    <span class="metric-value">${asset.marketCap ? `$${(asset.marketCap / 1e12).toFixed(2)}T` : 'N/A'}</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">Temperature</span>
-                    <span class="metric-value">${weather.temperature}°C</span>
+                    <span class="metric-label">52-Week High</span>
+                    <span class="metric-value">$${(asset.high24h * 1.5).toLocaleString('en-US', {maximumFractionDigits: 2})}</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">Condition</span>
-                    <span class="metric-value">${weather.condition}</span>
+                    <span class="metric-label">52-Week Low</span>
+                    <span class="metric-value">$${(asset.low24h * 0.7).toLocaleString('en-US', {maximumFractionDigits: 2})}</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">Humidity</span>
-                    <span class="metric-value">${weather.humidity}%</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Wind Speed</span>
-                    <span class="metric-value">${weather.wind_speed} km/h</span>
-                </div>
-            `;
-        }
-
-        function updateAirQuality(data) {
-            const aqi = data.air_quality;
-            document.getElementById('air-quality').innerHTML = `
-                <div class="metric">
-                    <span class="metric-label">AQI</span>
-                    <span class="metric-value">${aqi.aqi}</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">PM2.5</span>
-                    <span class="metric-value">${aqi.pm25} µg/m³</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">PM10</span>
-                    <span class="metric-value">${aqi.pm10} µg/m³</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Status</span>
-                    <span class="metric-value">${aqi.status}</span>
-                </div>
-            `;
-        }
-
-        function updateForecast(data) {
-            let html = '';
-            data.forecast.forEach(day => {
-                html += `
-                    <div class="forecast-item">
-                        <div class="forecast-day">${day.day}</div>
-                        <div class="forecast-weather">${day.weather}</div>
-                        <div class="forecast-temp">${day.high}°C / ${day.low}°C</div>
-                    </div>
-                `;
-            });
-            document.getElementById('forecast').innerHTML = html;
-        }
-
-        function updateWeatherAlerts(data) {
-            if (data.alerts.length === 0) {
-                document.getElementById('weather-alerts').innerHTML = '<p style="color: var(--success);">✓ No active weather alerts</p>';
-            } else {
-                let html = '';
-                data.alerts.forEach(alert => {
-                    html += `<div class="alert-box">${alert}</div>`;
-                });
-                document.getElementById('weather-alerts').innerHTML = html;
-            }
-        }
-
-        function updateAnalysis(data) {
-            // Update key factors
-            const ga = data.global_analysis;
-            document.getElementById('key-factors').innerHTML = `
-                <div class="metric">
-                    <span class="metric-label">Trend Score</span>
-                    <span class="metric-value">${data.market_prediction.market_factors.trend_score.toFixed(3)}</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Technical Indicators</span>
-                    <span class="metric-value">${(data.market_prediction.confidence * 100).toFixed(0)}%</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Global Sentiment</span>
-                    <span class="metric-value">${ga.sentiment_score.toFixed(2)}</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Market Volatility</span>
-                    <span class="metric-value">${(ga.volatility * 100).toFixed(0)}%</span>
+                    <span class="metric-label">PE Ratio</span>
+                    <span class="metric-value">${Math.floor(Math.random() * 40 + 15)}</span>
                 </div>
             `;
 
-            // Update market events
-            let html = '';
-            data.key_events.forEach(event => {
-                html += `
-                    <div class="alert-box">
-                        <div class="alert-title">${event.headline}</div>
-                        <div>Impact: <strong>${event.impact}</strong> | Sentiment: <strong>${event.sentiment}</strong></div>
-                    </div>
-                `;
-            });
-            document.getElementById('market-events').innerHTML = html;
-
-            // Update macro indicators
-            const macro = ga.macro_indicators;
-            document.getElementById('macro-indicators').innerHTML = `
+            // Risk Assessment
+            document.getElementById('riskAssessment').innerHTML = `
                 <div class="metric">
-                    <span class="metric-label">Inflation Pressure</span>
-                    <span class="metric-value">${macro.inflation.toFixed(2)}</span>
+                    <span class="metric-label">Risk Level</span>
+                    <span class="metric-value">${['Low', 'Moderate', 'High', 'Critical'][Math.floor(Math.random() * 4)]}</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">GDP Growth</span>
-                    <span class="metric-value">${macro.gdp_growth.toFixed(2)}</span>
+                    <span class="metric-label">Stop Loss</span>
+                    <span class="metric-value">$${(asset.price * 0.95).toFixed(2)}</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">Interest Rate Bias</span>
-                    <span class="metric-value">${macro.interest_rate.toFixed(2)}</span>
+                    <span class="metric-label">Take Profit</span>
+                    <span class="metric-value">$${(asset.price * 1.10).toFixed(2)}</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">Employment Concern</span>
-                    <span class="metric-value">${macro.unemployment.toFixed(2)}</span>
+                    <span class="metric-label">Risk/Reward</span>
+                    <span class="metric-value">1:${(1.10 / 0.05).toFixed(1)}</span>
                 </div>
             `;
         }
 
         function switchTab(tabName) {
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-
-            // Show selected tab
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
         }
 
         function shareLink() {
             const url = window.location.href;
-            const text = `Check out this Trading Agent Dashboard! 📈🤖\n${url}`;
-            
             if (navigator.share) {
                 navigator.share({
-                    title: 'Trading Agent Dashboard',
-                    text: 'Real-time market predictions and weather insights',
+                    title: 'Trading Dashboard',
+                    text: `Check out ${assetData[currentAsset].name} predictions!`,
                     url: url
                 });
             } else {
@@ -1051,45 +1184,46 @@
         }
 
         function downloadReport() {
-            const timestamp = new Date().toISOString().split('T')[0];
-            const filename = `trading-report-${timestamp}.txt`;
-            
-            const tradingData = generateTradingData();
-            const weatherData = generateWeatherData();
-            
-            let report = `TRADING AGENT DASHBOARD REPORT\n`;
-            report += `Generated: ${new Date().toLocaleString()}\n\n`;
-            report += `=== TRADING PREDICTION ===\n`;
-            report += `Signal: ${tradingData.trading_signal}\n`;
-            report += `Confidence: ${(tradingData.confidence_score * 100).toFixed(0)}%\n`;
-            report += `Risk Level: ${tradingData.risk_level}\n\n`;
-            report += `=== WEATHER ===\n`;
-            report += `Location: ${weatherData.current.location}\n`;
-            report += `Temperature: ${weatherData.current.temperature}°C\n`;
-            report += `Condition: ${weatherData.current.condition}\n\n`;
-            report += `=== RECOMMENDATIONS ===\n`;
-            tradingData.recommendations.forEach(rec => {
-                report += `${rec}\n`;
-            });
+            const asset = assetData[currentAsset];
+            const report = `
+TRADING DASHBOARD REPORT
+Generated: ${new Date().toLocaleString()}
+
+ASSET: ${asset.name} (${currentAsset})
+PRICE: $${asset.price.toLocaleString('en-US', {minimumFractionDigits: 2})}
+24H CHANGE: ${asset.change > 0 ? '+' : ''}${asset.change}%
+CATEGORY: ${asset.category}
+
+24H HIGH: $${asset.high24h.toLocaleString()}
+24H LOW: $${asset.low24h.toLocaleString()}
+VOLUME: ${asset.volume ? (asset.volume / 1e9).toFixed(1) + 'B' : 'N/A'}
+
+RECOMMENDATIONS:
+✓ Monitor price action around key levels
+✓ Watch for volatility expansion
+✓ Confirm signals with volume analysis
+✓ Use proper risk management
+✓ Follow your trading plan
+            `;
             
             const element = document.createElement('a');
             element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(report));
-            element.setAttribute('download', filename);
-            element.style.display = 'none';
-            document.body.appendChild(element);
+            element.setAttribute('download', `report-${currentAsset}-${Date.now()}.txt`);
             element.click();
-            document.body.removeChild(element);
         }
 
         function printDashboard() {
             window.print();
         }
 
-        // Initialize dashboard on page load
+        // Initialize
         window.addEventListener('load', () => {
             updateDashboard();
-            // Refresh every 30 seconds
-            setInterval(updateDashboard, 30000);
+            setInterval(() => {
+                assetData[currentAsset].price += (Math.random() - 0.5) * 10;
+                assetData[currentAsset].change = (Math.random() - 0.5) * 10;
+                updateDashboard();
+            }, 30000);
         });
     </script>
 </body>
