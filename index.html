@@ -787,389 +787,322 @@
     </footer>
 
     <script>
-        // Asset Data Store
-        const assetData = {
-            'BTC-USD': {
-                name: 'Bitcoin',
-                icon: '💻',
-                category: 'Cryptocurrency',
-                price: 45230.50,
-                change: 5.23,
-                high24h: 46500,
-                low24h: 44100,
-                volume: 28500000000,
-                marketCap: 890000000000
-            },
-            'ETH-USD': {
-                name: 'Ethereum',
-                icon: 'Ξ',
-                category: 'Cryptocurrency',
-                price: 2890.30,
-                change: 3.45,
-                high24h: 2950,
-                low24h: 2750,
-                volume: 14200000000,
-                marketCap: 347000000000
-            },
-            'XRP-USD': {
-                name: 'Ripple',
-                icon: '📊',
-                category: 'Cryptocurrency',
-                price: 2.45,
-                change: 2.12,
-                high24h: 2.55,
-                low24h: 2.35,
-                volume: 2100000000,
-                marketCap: 130000000000
-            },
-            'ADA-USD': {
-                name: 'Cardano',
-                icon: '📈',
-                category: 'Cryptocurrency',
-                price: 0.98,
-                change: 1.89,
-                high24h: 1.02,
-                low24h: 0.95,
-                volume: 1200000000,
-                marketCap: 35000000000
-            },
-            'SOL-USD': {
-                name: 'Solana',
-                icon: '⚡',
-                category: 'Cryptocurrency',
-                price: 145.67,
-                change: 4.56,
-                high24h: 148,
-                low24h: 140,
-                volume: 3400000000,
-                marketCap: 65000000000
-            },
-            'EURUSD=X': {
-                name: 'EUR/USD',
-                icon: '💱',
-                category: 'Forex Pair',
-                price: 1.0865,
-                change: 0.23,
-                high24h: 1.0920,
-                low24h: 1.0810,
-                volume: 325000000000,
-                marketCap: null
-            },
-            'GBPUSD=X': {
-                name: 'GBP/USD',
-                icon: '💷',
-                category: 'Forex Pair',
-                price: 1.2680,
-                change: 0.45,
-                high24h: 1.2750,
-                low24h: 1.2620,
-                volume: 210000000000,
-                marketCap: null
-            },
-            'USDJPY=X': {
-                name: 'USD/JPY',
-                icon: '¥',
-                category: 'Forex Pair',
-                price: 149.35,
-                change: -0.12,
-                high24h: 150.20,
-                low24h: 148.90,
-                volume: 280000000000,
-                marketCap: null
-            },
-            'AUDUSD=X': {
-                name: 'AUD/USD',
-                icon: '🦘',
-                category: 'Forex Pair',
-                price: 0.6750,
-                change: 0.67,
-                high24h: 0.6800,
-                low24h: 0.6710,
-                volume: 98000000000,
-                marketCap: null
-            },
-            'USDCAD=X': {
-                name: 'USD/CAD',
-                icon: '🍁',
-                category: 'Forex Pair',
-                price: 1.3560,
-                change: -0.34,
-                high24h: 1.3620,
-                low24h: 1.3480,
-                volume: 156000000000,
-                marketCap: null
-            },
-            'GC=F': {
-                name: 'Gold (XAU/USD)',
-                icon: '🥇',
-                category: 'Commodity',
-                price: 2050.25,
-                change: 1.45,
-                high24h: 2070,
-                low24h: 2035,
-                volume: 165000000,
-                marketCap: null
-            },
-            'SI=F': {
-                name: 'Silver',
-                icon: '🔗',
-                category: 'Commodity',
-                price: 24.35,
-                change: 2.34,
-                high24h: 25.10,
-                low24h: 23.80,
-                volume: 45000000,
-                marketCap: null
-            },
-            'CL=F': {
-                name: 'Oil',
-                icon: '🛢️',
-                category: 'Commodity',
-                price: 82.45,
-                change: -0.89,
-                high24h: 84.20,
-                low24h: 81.50,
-                volume: 2200000,
-                marketCap: null
-            },
-            'NG=F': {
-                name: 'Natural Gas',
-                icon: '⛽',
-                category: 'Commodity',
-                price: 2.89,
-                change: 3.12,
-                high24h: 3.05,
-                low24h: 2.75,
-                volume: 450000,
-                marketCap: null
-            },
-            'ZW=F': {
-                name: 'Wheat',
-                icon: '🌾',
-                category: 'Commodity',
-                price: 598.50,
-                change: 0.78,
-                high24h: 610,
-                low24h: 585,
-                volume: 89000,
-                marketCap: null
-            },
-            'NVDA': {
-                name: 'NVIDIA',
-                icon: '💻',
-                category: 'Tech Stock',
-                price: 875.30,
-                change: 2.45,
-                high24h: 890,
-                low24h: 850,
-                volume: 45000000,
-                marketCap: 2150000000000
-            },
-            'AAPL': {
-                name: 'Apple',
-                icon: '🍎',
-                category: 'Tech Stock',
-                price: 195.45,
-                change: 1.23,
-                high24h: 198,
-                low24h: 192,
-                volume: 52000000,
-                marketCap: 3050000000000
-            },
-            'MSFT': {
-                name: 'Microsoft',
-                icon: '🪟',
-                category: 'Tech Stock',
-                price: 420.50,
-                change: 1.67,
-                high24h: 428,
-                low24h: 415,
-                volume: 28000000,
-                marketCap: 3140000000000
-            },
-            'GOOGL': {
-                name: 'Alphabet',
-                icon: '🔍',
-                category: 'Tech Stock',
-                price: 168.90,
-                change: 0.95,
-                high24h: 172,
-                low24h: 165,
-                volume: 22000000,
-                marketCap: 2200000000000
-            },
-            'TSLA': {
-                name: 'Tesla',
-                icon: '⚡',
-                category: 'Tech Stock',
-                price: 245.67,
-                change: 3.45,
-                high24h: 252,
-                low24h: 240,
-                volume: 135000000,
-                marketCap: 778000000000
-            }
+        // ============================================================
+        // CONFIG
+        // ============================================================
+        const TWELVEDATA_API_KEY = '53ca0f596b344545b65f4384aa2fc6ef';
+        const REFRESH_INTERVAL_MS = 120000; // 2 minutes — keeps us well inside TwelveData's free 800/day, 8/min limits
+
+        // Static metadata (icon, display name, category) — prices are NEVER hardcoded below, only fetched live.
+        const ASSET_META = {
+            'BTC-USD':  { name: 'Bitcoin',        icon: '₿',  category: 'Cryptocurrency', source: 'coingecko', coingeckoId: 'bitcoin' },
+            'ETH-USD':  { name: 'Ethereum',       icon: 'Ξ',  category: 'Cryptocurrency', source: 'coingecko', coingeckoId: 'ethereum' },
+            'XRP-USD':  { name: 'Ripple (XRP)',   icon: '✕',  category: 'Cryptocurrency', source: 'coingecko', coingeckoId: 'ripple' },
+            'ADA-USD':  { name: 'Cardano (ADA)',  icon: '◈',  category: 'Cryptocurrency', source: 'coingecko', coingeckoId: 'cardano' },
+            'SOL-USD':  { name: 'Solana (SOL)',   icon: '◎',  category: 'Cryptocurrency', source: 'coingecko', coingeckoId: 'solana' },
+
+            'EURUSD=X': { name: 'EUR/USD', icon: '💶', category: 'Forex Pair', source: 'twelvedata', tdSymbol: 'EUR/USD' },
+            'GBPUSD=X': { name: 'GBP/USD', icon: '💷', category: 'Forex Pair', source: 'twelvedata', tdSymbol: 'GBP/USD' },
+            'USDJPY=X': { name: 'USD/JPY', icon: '¥',  category: 'Forex Pair', source: 'twelvedata', tdSymbol: 'USD/JPY' },
+            'AUDUSD=X': { name: 'AUD/USD', icon: '🦘', category: 'Forex Pair', source: 'twelvedata', tdSymbol: 'AUD/USD' },
+            'USDCAD=X': { name: 'USD/CAD', icon: '🍁', category: 'Forex Pair', source: 'twelvedata', tdSymbol: 'USD/CAD' },
+
+            'GC=F': { name: 'Gold (XAU/USD)',   icon: '🥇', category: 'Commodity', source: 'twelvedata', tdSymbol: 'XAU/USD' },
+            'SI=F': { name: 'Silver (XAG/USD)', icon: '🔗', category: 'Commodity', source: 'twelvedata', tdSymbol: 'XAG/USD' },
+            'CL=F': { name: 'Crude Oil (WTI)',  icon: '🛢️', category: 'Commodity', source: 'twelvedata', tdSymbol: 'WTI/USD' },
+            'NG=F': { name: 'Natural Gas',      icon: '⛽', category: 'Commodity', source: 'twelvedata', tdSymbol: 'NATGAS/USD' },
+            'ZW=F': { name: 'Wheat',            icon: '🌾', category: 'Commodity', source: 'twelvedata', tdSymbol: 'WHEAT/USD' },
+
+            'NVDA':  { name: 'NVIDIA',   icon: '💻', category: 'Tech Stock', source: 'twelvedata', tdSymbol: 'NVDA' },
+            'AAPL':  { name: 'Apple',    icon: '🍎', category: 'Tech Stock', source: 'twelvedata', tdSymbol: 'AAPL' },
+            'MSFT':  { name: 'Microsoft', icon: '🪟', category: 'Tech Stock', source: 'twelvedata', tdSymbol: 'MSFT' },
+            'GOOGL': { name: 'Alphabet', icon: '🔍', category: 'Tech Stock', source: 'twelvedata', tdSymbol: 'GOOGL' },
+            'TSLA':  { name: 'Tesla',   icon: '⚡', category: 'Tech Stock', source: 'twelvedata', tdSymbol: 'TSLA' }
         };
 
+        // Live data store, populated by fetchAllPrices(). null = not yet loaded / failed.
+        let liveData = {};
         let currentAsset = 'BTC-USD';
+        let lastFetchTime = null;
+        let fetchInFlight = false;
 
+        // ============================================================
+        // FETCHING
+        // ============================================================
+        async function fetchCoinGeckoPrices() {
+            const ids = Object.values(ASSET_META)
+                .filter(a => a.source === 'coingecko')
+                .map(a => a.coingeckoId)
+                .join(',');
+            const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`;
+
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`CoinGecko HTTP ${res.status}`);
+            const json = await res.json();
+
+            for (const [ticker, meta] of Object.entries(ASSET_META)) {
+                if (meta.source !== 'coingecko') continue;
+                const d = json[meta.coingeckoId];
+                if (!d || typeof d.usd !== 'number') {
+                    liveData[ticker] = { ...liveData[ticker], error: true };
+                    continue;
+                }
+                liveData[ticker] = {
+                    price: d.usd,
+                    change: d.usd_24h_change ?? 0,
+                    volume: d.usd_24h_vol ?? null,
+                    marketCap: d.usd_market_cap ?? null,
+                    high24h: null, // CoinGecko simple/price doesn't include this; left blank rather than faked
+                    low24h: null,
+                    error: false
+                };
+            }
+        }
+
+        async function fetchTwelveDataPrices() {
+            const symbols = Object.values(ASSET_META)
+                .filter(a => a.source === 'twelvedata')
+                .map(a => a.tdSymbol);
+            const symbolParam = symbols.join(',');
+            const url = `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbolParam)}&apikey=${TWELVEDATA_API_KEY}`;
+
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`TwelveData HTTP ${res.status}`);
+            const json = await res.json();
+
+            // When multiple symbols are requested, TwelveData keys the response by symbol.
+            // When only one symbol resolves, it sometimes returns a flat single-quote object instead — handle both.
+            const bySymbol = (json.symbol && !Array.isArray(json) && Object.keys(json).every(k => typeof json[k] !== 'object' || k === 'symbol'))
+                ? { [json.symbol]: json }
+                : json;
+
+            for (const [ticker, meta] of Object.entries(ASSET_META)) {
+                if (meta.source !== 'twelvedata') continue;
+                const d = bySymbol[meta.tdSymbol];
+                if (!d || d.status === 'error' || d.code || typeof d.close === 'undefined') {
+                    liveData[ticker] = { ...liveData[ticker], error: true };
+                    continue;
+                }
+                liveData[ticker] = {
+                    price: parseFloat(d.close),
+                    change: parseFloat(d.percent_change ?? 0),
+                    high24h: d.high !== undefined ? parseFloat(d.high) : null,
+                    low24h: d.low !== undefined ? parseFloat(d.low) : null,
+                    volume: d.volume ? parseFloat(d.volume) : null,
+                    marketCap: null,
+                    error: false
+                };
+            }
+        }
+
+        async function fetchAllPrices() {
+            if (fetchInFlight) return;
+            fetchInFlight = true;
+            const errors = [];
+
+            try {
+                await fetchCoinGeckoPrices();
+            } catch (e) {
+                errors.push('Crypto (CoinGecko): ' + e.message);
+            }
+
+            try {
+                await fetchTwelveDataPrices();
+            } catch (e) {
+                errors.push('Forex/Commodities/Stocks (TwelveData): ' + e.message);
+            }
+
+            lastFetchTime = new Date();
+            fetchInFlight = false;
+            updateDashboard();
+
+            if (errors.length) {
+                console.warn('Price fetch issues:', errors.join(' | '));
+            }
+        }
+
+        // ============================================================
+        // UI HELPERS
+        // ============================================================
         function selectAsset(ticker, label) {
             currentAsset = ticker;
             document.querySelectorAll('.asset-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
             updateDashboard();
         }
 
         function searchAsset() {
             const searchTerm = document.getElementById('searchInput').value.toUpperCase();
-            const found = Object.keys(assetData).find(key => 
-                key.includes(searchTerm) || assetData[key].name.toUpperCase().includes(searchTerm)
+            const found = Object.keys(ASSET_META).find(key =>
+                key.toUpperCase().includes(searchTerm) || ASSET_META[key].name.toUpperCase().includes(searchTerm)
             );
-            
+
             if (found) {
                 currentAsset = found;
                 updateDashboard();
-                alert(`Loaded: ${assetData[found].name}`);
+                alert(`Loaded: ${ASSET_META[found].name}`);
             } else {
                 alert('Asset not found. Please select from available options.');
             }
         }
 
-        function generateTradingSignal(assetPrice, change) {
-            const signals = ['STRONG_BUY', 'BUY', 'HOLD', 'SELL', 'STRONG_SELL'];
-            const index = Math.floor(Math.random() * signals.length);
-            return signals[index];
+        function formatPrice(value) {
+            if (value === null || value === undefined || isNaN(value)) return 'N/A';
+            const decimals = Math.abs(value) < 10 ? 4 : 2;
+            return `$${value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
         }
 
-        function generateTechnicalMetrics() {
-            return {
-                rsi: Math.floor(Math.random() * 100),
-                macd: (Math.random() * 20 - 10).toFixed(2),
-                trend: Math.random() > 0.5 ? 'UPTREND' : 'DOWNTREND',
-                volatility: (Math.random() * 50 + 10).toFixed(1) + '%'
-            };
+        function generateTradingSignal(change) {
+            if (change === null || change === undefined) return 'HOLD';
+            if (change > 3) return 'STRONG_BUY';
+            if (change > 0.5) return 'BUY';
+            if (change < -3) return 'STRONG_SELL';
+            if (change < -0.5) return 'SELL';
+            return 'HOLD';
+        }
+
+        // RSI/MACD/trend/volatility/sentiment require historical time-series data, which isn't available
+        // on the free API tiers wired up here. Rather than fabricate numbers, these are clearly marked N/A.
+        function getTechnicalPlaceholder() {
+            return { rsi: 'N/A', macd: 'N/A', trend: 'N/A', volatility: 'N/A' };
         }
 
         function updateDashboard() {
-            const asset = assetData[currentAsset];
-            document.getElementById('timestamp').textContent = new Date().toLocaleString();
+            const meta = ASSET_META[currentAsset];
+            const data = liveData[currentAsset];
 
-            // Update asset header
-            document.getElementById('assetIcon').textContent = asset.icon;
-            document.getElementById('assetName').textContent = asset.name;
-            document.getElementById('assetCategory').textContent = asset.category;
+            document.getElementById('timestamp').textContent = lastFetchTime
+                ? lastFetchTime.toLocaleString()
+                : 'Fetching...';
 
-            // Update price info
-            document.getElementById('currentPrice').textContent = `$${asset.price.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-            
-            const priceChangeElement = document.getElementById('priceChange');
-            priceChangeElement.textContent = `${asset.change > 0 ? '+' : ''}${asset.change}%`;
-            priceChangeElement.className = `price-change ${asset.change > 0 ? 'positive' : 'negative'}`;
+            document.getElementById('assetIcon').textContent = meta.icon;
+            document.getElementById('assetName').textContent = meta.name;
+            document.getElementById('assetCategory').textContent = meta.category;
 
-            document.getElementById('high24h').textContent = `$${asset.high24h.toLocaleString()}`;
-            document.getElementById('low24h').textContent = `$${asset.low24h.toLocaleString()}`;
-            document.getElementById('volume').textContent = asset.volume ? `${(asset.volume / 1e9).toFixed(1)}B` : 'N/A';
+            if (!data || data.error || data.price === undefined) {
+                document.getElementById('currentPrice').textContent = data?.error ? 'Unavailable' : 'Loading...';
+                const priceChangeElement = document.getElementById('priceChange');
+                priceChangeElement.textContent = '—';
+                priceChangeElement.className = 'price-change';
+                document.getElementById('high24h').textContent = '-';
+                document.getElementById('low24h').textContent = '-';
+                document.getElementById('volume').textContent = '-';
+            } else {
+                document.getElementById('currentPrice').textContent = formatPrice(data.price);
 
-            // Trading Signal
-            const signal = generateTradingSignal(asset.price, asset.change);
+                const priceChangeElement = document.getElementById('priceChange');
+                const change = data.change ?? 0;
+                priceChangeElement.textContent = `${change > 0 ? '+' : ''}${change.toFixed(2)}%`;
+                priceChangeElement.className = `price-change ${change > 0 ? 'positive' : 'negative'}`;
+
+                document.getElementById('high24h').textContent = data.high24h !== null ? formatPrice(data.high24h) : 'N/A';
+                document.getElementById('low24h').textContent = data.low24h !== null ? formatPrice(data.low24h) : 'N/A';
+                document.getElementById('volume').textContent = data.volume ? `${(data.volume / 1e9).toFixed(2)}B` : 'N/A';
+            }
+
+            // Trading Signal — derived from real % change, not random
+            const change = data && !data.error ? data.change : null;
+            const signal = generateTradingSignal(change);
             const signalElement = document.getElementById('trading-signal');
             signalElement.className = `signal ${signal.toLowerCase().replace('_', '-')}`;
-            signalElement.textContent = signal;
+            signalElement.textContent = (data && !data.error) ? signal.replace('_', ' ') : 'NO DATA';
 
-            const confidence = Math.floor(Math.random() * 40 + 60);
             const tradingStatsEl = document.getElementById('trading-stats');
             if (tradingStatsEl) {
+                const confidenceLabel = (data && !data.error) ? `${Math.min(95, 60 + Math.abs(change || 0) * 3).toFixed(0)}%` : 'N/A';
+                const riskLabel = (data && !data.error) ? (Math.abs(change || 0) > 3 ? 'High' : Math.abs(change || 0) > 1 ? 'Moderate' : 'Low') : 'N/A';
                 tradingStatsEl.innerHTML = `
                     <div class="stat-box">
-                        <div class="stat-value">${confidence}%</div>
+                        <div class="stat-value">${confidenceLabel}</div>
                         <div class="stat-label">Confidence</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value">${['Low', 'Moderate', 'High'][Math.floor(Math.random() * 3)]}</div>
+                        <div class="stat-value">${riskLabel}</div>
                         <div class="stat-label">Risk Level</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value">${['Small', 'Medium', 'Large'][Math.floor(Math.random() * 3)]}</div>
+                        <div class="stat-value">${riskLabel === 'High' ? 'Small' : riskLabel === 'Moderate' ? 'Medium' : 'Large'}</div>
                         <div class="stat-label">Position Size</div>
                     </div>
                 `;
             }
 
-            // Technical Metrics
-            const tech = generateTechnicalMetrics();
+            // Technical metrics — honest N/A placeholders (no historical data source wired up yet)
+            const tech = getTechnicalPlaceholder();
             document.getElementById('rsi').textContent = tech.rsi;
             document.getElementById('macd').textContent = tech.macd;
-            document.getElementById('trend').textContent = tech.trend;
+            document.getElementById('trend').textContent = change === null ? 'N/A' : (change >= 0 ? 'UPTREND' : 'DOWNTREND');
             document.getElementById('volatility').textContent = tech.volatility;
 
-            // Sentiment
-            const sentiments = ['BULLISH', 'BEARISH', 'NEUTRAL'];
-            const sentiment = sentiments[Math.floor(Math.random() * sentiments.length)];
-            document.getElementById('sentiment').textContent = sentiment;
-            document.getElementById('sentimentScore').textContent = (Math.random() * 100).toFixed(1);
-            document.getElementById('marketRisk').textContent = ['Low', 'Moderate', 'High'][Math.floor(Math.random() * 3)];
-            document.getElementById('impliedVol').textContent = (Math.random() * 50 + 10).toFixed(1) + '%';
+            // Sentiment — derived directly from real change, not random
+            document.getElementById('sentiment').textContent = change === null ? 'N/A' : (change > 0.5 ? 'BULLISH' : change < -0.5 ? 'BEARISH' : 'NEUTRAL');
+            document.getElementById('sentimentScore').textContent = change === null ? 'N/A' : Math.min(100, 50 + change * 5).toFixed(1);
+            document.getElementById('marketRisk').textContent = change === null ? 'N/A' : (Math.abs(change) > 3 ? 'High' : Math.abs(change) > 1 ? 'Moderate' : 'Low');
+            document.getElementById('impliedVol').textContent = change === null ? 'N/A' : `${Math.min(80, Math.abs(change) * 8 + 10).toFixed(1)}%`;
 
             // Recommendations
-            const recommendations = [
-                `✓ Strong technical setup for ${asset.name}`,
-                `✓ RSI indicates momentum`,
-                `✓ Consider position size based on volatility`,
+            const recommendations = (data && !data.error) ? [
+                `✓ Live price sourced from ${meta.source === 'coingecko' ? 'CoinGecko' : 'Twelve Data'}`,
+                `✓ 24h change: ${change > 0 ? '+' : ''}${change.toFixed(2)}%`,
                 `✓ Monitor key support/resistance levels`,
-                `✓ Set stop loss and take profit targets`
+                `✓ Set stop loss and take profit targets`,
+                `✓ This is not financial advice — verify with your broker`
+            ] : [
+                `⚠️ Live data unavailable for ${meta.name} right now`,
+                `⚠️ Try refreshing in a minute, or check another asset`
             ];
-            let html = '';
-            recommendations.forEach(rec => {
-                html += `<div class="recommendation-item">${rec}</div>`;
-            });
-            document.getElementById('recommendations').innerHTML = html;
+            document.getElementById('recommendations').innerHTML = recommendations.map(r => `<div class="recommendation-item">${r}</div>`).join('');
 
             // Asset Info
             document.getElementById('assetInfo').innerHTML = `
                 <div class="metric">
                     <span class="metric-label">Market Cap</span>
-                    <span class="metric-value">${asset.marketCap ? `$${(asset.marketCap / 1e12).toFixed(2)}T` : 'N/A'}</span>
+                    <span class="metric-value">${data?.marketCap ? `$${(data.marketCap / 1e9).toFixed(2)}B` : 'N/A'}</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">52-Week High</span>
-                    <span class="metric-value">$${(asset.high24h * 1.5).toLocaleString('en-US', {maximumFractionDigits: 2})}</span>
+                    <span class="metric-label">24h High</span>
+                    <span class="metric-value">${data?.high24h !== null && data?.high24h !== undefined ? formatPrice(data.high24h) : 'N/A'}</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">52-Week Low</span>
-                    <span class="metric-value">$${(asset.low24h * 0.7).toLocaleString('en-US', {maximumFractionDigits: 2})}</span>
+                    <span class="metric-label">24h Low</span>
+                    <span class="metric-value">${data?.low24h !== null && data?.low24h !== undefined ? formatPrice(data.low24h) : 'N/A'}</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">PE Ratio</span>
-                    <span class="metric-value">${Math.floor(Math.random() * 40 + 15)}</span>
+                    <span class="metric-label">Data Source</span>
+                    <span class="metric-value">${meta.source === 'coingecko' ? 'CoinGecko' : 'Twelve Data'}</span>
                 </div>
             `;
 
-            // Risk Assessment
-            document.getElementById('riskAssessment').innerHTML = `
-                <div class="metric">
-                    <span class="metric-label">Risk Level</span>
-                    <span class="metric-value">${['Low', 'Moderate', 'High', 'Critical'][Math.floor(Math.random() * 4)]}</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Stop Loss</span>
-                    <span class="metric-value">$${(asset.price * 0.95).toFixed(2)}</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Take Profit</span>
-                    <span class="metric-value">$${(asset.price * 1.10).toFixed(2)}</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Risk/Reward</span>
-                    <span class="metric-value">1:${(1.10 / 0.05).toFixed(1)}</span>
-                </div>
-            `;
+            // Risk Assessment — based on real price, not random
+            if (data && !data.error && data.price) {
+                document.getElementById('riskAssessment').innerHTML = `
+                    <div class="metric">
+                        <span class="metric-label">Risk Level</span>
+                        <span class="metric-value">${Math.abs(change) > 3 ? 'High' : Math.abs(change) > 1 ? 'Moderate' : 'Low'}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Stop Loss</span>
+                        <span class="metric-value">${formatPrice(data.price * 0.95)}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Take Profit</span>
+                        <span class="metric-value">${formatPrice(data.price * 1.10)}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Risk/Reward</span>
+                        <span class="metric-value">1:${(1.10 / 0.05).toFixed(1)}</span>
+                    </div>
+                `;
+            } else {
+                document.getElementById('riskAssessment').innerHTML = `<div class="metric"><span class="metric-label">Status</span><span class="metric-value">No data available</span></div>`;
+            }
         }
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
         }
 
         function shareLink() {
@@ -1177,7 +1110,7 @@
             if (navigator.share) {
                 navigator.share({
                     title: 'Trading Dashboard',
-                    text: `Check out ${assetData[currentAsset].name} predictions!`,
+                    text: `Check out ${ASSET_META[currentAsset].name} live prices!`,
                     url: url
                 });
             } else {
@@ -1187,19 +1120,20 @@
         }
 
         function downloadReport() {
-            const asset = assetData[currentAsset];
+            const meta = ASSET_META[currentAsset];
+            const data = liveData[currentAsset];
+            const priceStr = (data && !data.error) ? formatPrice(data.price) : 'Unavailable';
+            const changeStr = (data && !data.error) ? `${data.change > 0 ? '+' : ''}${data.change.toFixed(2)}%` : 'N/A';
+
             const report = `
 TRADING DASHBOARD REPORT
 Generated: ${new Date().toLocaleString()}
 
-ASSET: ${asset.name} (${currentAsset})
-PRICE: $${asset.price.toLocaleString('en-US', {minimumFractionDigits: 2})}
-24H CHANGE: ${asset.change > 0 ? '+' : ''}${asset.change}%
-CATEGORY: ${asset.category}
-
-24H HIGH: $${asset.high24h.toLocaleString()}
-24H LOW: $${asset.low24h.toLocaleString()}
-VOLUME: ${asset.volume ? (asset.volume / 1e9).toFixed(1) + 'B' : 'N/A'}
+ASSET: ${meta.name} (${currentAsset})
+PRICE: ${priceStr}
+24H CHANGE: ${changeStr}
+CATEGORY: ${meta.category}
+DATA SOURCE: ${meta.source === 'coingecko' ? 'CoinGecko' : 'Twelve Data'}
 
 RECOMMENDATIONS:
 ✓ Monitor price action around key levels
@@ -1207,8 +1141,10 @@ RECOMMENDATIONS:
 ✓ Confirm signals with volume analysis
 ✓ Use proper risk management
 ✓ Follow your trading plan
+
+Disclaimer: Not financial advice.
             `;
-            
+
             const element = document.createElement('a');
             element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(report));
             element.setAttribute('download', `report-${currentAsset}-${Date.now()}.txt`);
@@ -1219,14 +1155,13 @@ RECOMMENDATIONS:
             window.print();
         }
 
-        // Initialize
+        // ============================================================
+        // INIT
+        // ============================================================
         window.addEventListener('load', () => {
-            updateDashboard();
-            setInterval(() => {
-                assetData[currentAsset].price += (Math.random() - 0.5) * 10;
-                assetData[currentAsset].change = (Math.random() - 0.5) * 10;
-                updateDashboard();
-            }, 30000);
+            updateDashboard(); // render placeholder state immediately
+            fetchAllPrices();  // then fetch real data
+            setInterval(fetchAllPrices, REFRESH_INTERVAL_MS);
         });
     </script>
 </body>
