@@ -601,12 +601,12 @@
                             <div class="stat-value" id="high24h">-</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-label\">24h Low</div>
-                            <div class="stat-value\" id="low24h\">-</div>
+                            <div class="stat-label">24h Low</div>
+                            <div class="stat-value" id="low24h">-</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-label\">Volume</div>
-                            <div class="stat-value\" id="volume\">-</div>
+                            <div class="stat-label">Volume</div>
+                            <div class="stat-value" id="volume">-</div>
                         </div>
                     </div>
                 </div>
@@ -614,22 +614,22 @@
                 <!-- Trading Signal Card -->
                 <div class="card">
                     <div class="card-title">
-                        <span class="card-icon\">🎯</span>
+                        <span class="card-icon">🎯</span>
                         <span>Trading Signal</span>
                     </div>
-                    <div id="trading-signal\" class=\"signal hold\">LOADING...</div>
-                    <div class=\"stats-grid\" id=\"trading-stats\">
-                        <div class=\"stat-box\">
-                            <div class=\"stat-value\">-</div>
-                            <div class=\"stat-label\">Confidence</div>
+                    <div id="trading-signal" class="signal hold">LOADING...</div>
+                    <div class="stats-grid" id="trading-stats">
+                        <div class="stat-box">
+                            <div class="stat-value">-</div>
+                            <div class="stat-label">Confidence</div>
                         </div>
-                        <div class=\"stat-box\">
-                            <div class=\"stat-value\">-</div>
-                            <div class=\"stat-label\">Risk Level</div>
+                        <div class="stat-box">
+                            <div class="stat-value">-</div>
+                            <div class="stat-label">Risk Level</div>
                         </div>
-                        <div class=\"stat-box\">
-                            <div class=\"stat-value\">-</div>
-                            <div class=\"stat-label\">Position Size</div>
+                        <div class="stat-box">
+                            <div class="stat-value">-</div>
+                            <div class="stat-label">Position Size</div>
                         </div>
                     </div>
                 </div>
@@ -1077,20 +1077,23 @@
             signalElement.textContent = signal;
 
             const confidence = Math.floor(Math.random() * 40 + 60);
-            document.querySelector('.stats-grid')?.innerHTML = `
-                <div class="stat-box">
-                    <div class="stat-value">${confidence}%</div>
-                    <div class="stat-label">Confidence</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value">${['Low', 'Moderate', 'High'][Math.floor(Math.random() * 3)]}</div>
-                    <div class="stat-label">Risk Level</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value">${['Small', 'Medium', 'Large'][Math.floor(Math.random() * 3)]}</div>
-                    <div class="stat-label">Position Size</div>
-                </div>
-            `;
+            const tradingStatsEl = document.getElementById('trading-stats');
+            if (tradingStatsEl) {
+                tradingStatsEl.innerHTML = `
+                    <div class="stat-box">
+                        <div class="stat-value">${confidence}%</div>
+                        <div class="stat-label">Confidence</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">${['Low', 'Moderate', 'High'][Math.floor(Math.random() * 3)]}</div>
+                        <div class="stat-label">Risk Level</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">${['Small', 'Medium', 'Large'][Math.floor(Math.random() * 3)]}</div>
+                        <div class="stat-label">Position Size</div>
+                    </div>
+                `;
+            }
 
             // Technical Metrics
             const tech = generateTechnicalMetrics();
