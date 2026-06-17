@@ -94,19 +94,21 @@ function hasApiKey() {
 // ASSET CONFIG
 // ============================================================
 const ASSETS = [
-  { id: "gold", label: "Gold",    sym: "XAUUSD", emoji: "🥇", color: "#F59E0B", source: "twelvedata", tdSymbol: "XAU/USD" },
-  { id: "btc",  label: "Bitcoin", sym: "BTCUSD", emoji: "₿",  color: "#F97316", source: "coingecko",  cgId: "bitcoin" },
-  { id: "eth",  label: "Ether",   sym: "ETHUSD", emoji: "Ξ",  color: "#8B5CF6", source: "coingecko",  cgId: "ethereum" },
-  { id: "sol",  label: "Solana",  sym: "SOLUSD", emoji: "◎",  color: "#10B981", source: "coingecko",  cgId: "solana" },
-  { id: "xrp",  label: "XRP",     sym: "XRPUSD", emoji: "✕",  color: "#3B82F6", source: "coingecko",  cgId: "ripple" },
-  { id: "bnb",  label: "BNB",     sym: "BNBUSD", emoji: "🟡", color: "#EAB308", source: "coingecko",  cgId: "binancecoin" },
+  { id: "gold",   label: "Gold",    sym: "XAUUSD", emoji: "🥇", color: "#F59E0B", source: "twelvedata", tdSymbol: "XAU/USD" },
+  { id: "silver", label: "Silver",  sym: "XAGUSD", emoji: "🔗", color: "#94A3B8", source: "twelvedata", tdSymbol: "XAG/USD" },
+  { id: "oil",    label: "Crude Oil", sym: "WTIUSD", emoji: "🛢️", color: "#78716C", source: "twelvedata", tdSymbol: "WTI/USD" },
+  { id: "btc",    label: "Bitcoin", sym: "BTCUSD", emoji: "₿",  color: "#F97316", source: "coingecko",  cgId: "bitcoin" },
+  { id: "eth",    label: "Ether",   sym: "ETHUSD", emoji: "Ξ",  color: "#8B5CF6", source: "coingecko",  cgId: "ethereum" },
+  { id: "sol",    label: "Solana",  sym: "SOLUSD", emoji: "◎",  color: "#10B981", source: "coingecko",  cgId: "solana" },
+  { id: "xrp",    label: "XRP",     sym: "XRPUSD", emoji: "✕",  color: "#3B82F6", source: "coingecko",  cgId: "ripple" },
+  { id: "bnb",    label: "BNB",     sym: "BNBUSD", emoji: "🟡", color: "#EAB308", source: "coingecko",  cgId: "binancecoin" },
 ];
 
-const FALLBACK_PRICES = { gold: 3380, btc: 100000, eth: 3500, sol: 180, xrp: 2.1, bnb: 600 };
+const FALLBACK_PRICES = { gold: 3380, silver: 38, oil: 72, btc: 100000, eth: 3500, sol: 180, xrp: 2.1, bnb: 600 };
 
 function formatPrice(id, price) {
   if (price === null || price === undefined || isNaN(price)) return "—";
-  if (id === "gold") return price.toFixed(2);
+  if (id === "gold" || id === "silver" || id === "oil") return price.toFixed(2);
   if (id === "xrp") return price.toFixed(4);
   if (id === "sol" || id === "bnb") return price.toFixed(2);
   return price >= 1000 ? price.toLocaleString(undefined, {maximumFractionDigits: 2}) : price.toFixed(2);
@@ -809,7 +811,9 @@ const AE_RULES = [
 ];
 
 const AE_ASSETS = [
-  { id: "xauusd", label: "XAU/USD (Gold)", pipDecimal: 0.01, pipValuePerLotUSD: 1, defaultLot: 0.01 }, // $1/pip per 0.01 lot convention
+  { id: "xauusd", label: "XAU/USD (Gold)",   pipDecimal: 0.01, pipValuePerLotUSD: 1,    defaultLot: 0.01 }, // $1/pip per 0.01 lot convention
+  { id: "xagusd", label: "XAG/USD (Silver)", pipDecimal: 0.01, pipValuePerLotUSD: 0.05, defaultLot: 0.01, brokerVaries: true }, // varies a lot by broker (100oz vs 5000oz lots) — adjustable below
+  { id: "wtiusd", label: "WTI/USD (Oil)",    pipDecimal: 0.01, pipValuePerLotUSD: 0.10, defaultLot: 0.10, brokerVaries: true }, // varies by broker (10/100/1000 barrel lots) — adjustable below
   { id: "btcusd", label: "BTC/USD", pipDecimal: 1, pipValuePerLotUSD: 0.01, defaultLot: 1, isCrypto: true }, // default: 1 lot = 1 BTC, $0.01/pip per lot at $1 move per unit — user-adjustable below
   { id: "ethusd", label: "ETH/USD", pipDecimal: 0.1, pipValuePerLotUSD: 0.1, defaultLot: 1, isCrypto: true },
 ];
@@ -833,6 +837,7 @@ const aeState = {
   vpsEndpoint: "",
   vpsConnected: false,
   cryptoContractOverride: {}, // { btcusd: 1, ethusd: 1 } units per lot, user-adjustable
+  pipValueOverride: {}, // { xagusd: 0.05, wtiusd: 0.10 } $/pip at 0.01 lot, user-adjustable since broker conventions vary widely
 };
 
 function aeGetAsset() { return AE_ASSETS.find(a => a.id === aeState.asset); }
@@ -859,6 +864,10 @@ function aeComputeLotSizing() {
   if (asset.isCrypto) {
     // 1 lot = contractUnits of the asset (user-adjustable). Pip = $1 move per unit by default for crypto (point-based, not traditional pips).
     pipValuePerStandardLot = contractUnits;
+  } else if (asset.brokerVaries) {
+    // Silver/Oil: pip value per standard lot varies significantly by broker's contract size convention.
+    // Use the user's override if set, otherwise the rough default — always editable in the UI.
+    pipValuePerStandardLot = (aeState.pipValueOverride[aeState.asset] ?? asset.pipValuePerLotUSD) * 100;
   } else {
     pipValuePerStandardLot = asset.pipValuePerLotUSD * 100; // gold convention: $1/pip at 0.01 lot => $100/pip at 1.00 lot
   }
@@ -1061,6 +1070,13 @@ function aeRenderCalcView() {
           <span style="font-size:10px;color:#475569;">Units per 1.00 lot (check your broker):</span>
           <input id="aeCryptoContract" type="number" step="0.01" value="${aeState.cryptoContractOverride[aeState.asset] ?? asset.defaultLot}" style="width:80px;background:rgba(13,20,33,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 8px;color:#e2e8f0;font-size:11px;" />
         </div>
+      ` : ""}
+      ${asset.brokerVaries ? `
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+          <span style="font-size:10px;color:#475569;">$/pip at 0.01 lot (check your broker spec):</span>
+          <input id="aePipValueOverride" type="number" step="0.01" value="${aeState.pipValueOverride[aeState.asset] ?? asset.pipValuePerLotUSD}" style="width:80px;background:rgba(13,20,33,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 8px;color:#e2e8f0;font-size:11px;" />
+        </div>
+        <div style="font-size:9px;color:#92400e;margin-top:4px;">⚠ ${asset.label.includes('Silver') ? 'Silver' : 'Oil'} contract sizes vary a lot by broker (check MT5 → right-click symbol → Specification → Contract Size). Default shown is a rough estimate.</div>
       ` : ""}
     </div>
 
@@ -1341,6 +1357,11 @@ function aeAttachHandlers() {
   const cryptoContract = document.getElementById("aeCryptoContract");
   if (cryptoContract) cryptoContract.addEventListener("change", (e) => {
     aeState.cryptoContractOverride[aeState.asset] = parseFloat(e.target.value) || 1;
+    aeRender();
+  });
+  const pipValueOverride = document.getElementById("aePipValueOverride");
+  if (pipValueOverride) pipValueOverride.addEventListener("change", (e) => {
+    aeState.pipValueOverride[aeState.asset] = parseFloat(e.target.value) || 0.01;
     aeRender();
   });
 
