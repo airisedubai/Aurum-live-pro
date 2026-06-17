@@ -12,17 +12,54 @@
   html, body { height: 100%; }
   body {
     background: #07090f; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif;
-    overflow: hidden;
   }
   ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-thumb { background: rgba(245,158,11,0.2); border-radius: 2px; }
-  #root { display: flex; flex-direction: column; height: 100vh; }
+  #root { display: flex; flex-direction: column; height: calc(100vh - 41px); }
   button { font-family: inherit; }
   textarea { font-family: inherit; }
 </style>
 </head>
 <body>
+<div style="display:flex;background:#07090f;border-bottom:1px solid rgba(245,158,11,0.15);position:sticky;top:0;z-index:200;">
+  <button id="modeBtnDashboard" class="mode-btn" style="flex:1;padding:10px 0;background:rgba(245,158,11,0.08);border:none;border-bottom:2px solid #f59e0b;color:#f59e0b;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;font-family:system-ui,sans-serif;">💰 PRICE DASHBOARD</button>
+  <button id="modeBtnEngine" class="mode-btn" style="flex:1;padding:10px 0;background:none;border:none;border-bottom:2px solid transparent;color:#4b5563;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;font-family:system-ui,sans-serif;">⚜ AURUM ENGINE</button>
+</div>
+<div id="dashboardView" style="display:block;">
 <div id="root"></div>
+</div>
+<div id="engineView" style="display:none;height:calc(100vh - 41px);overflow-y:auto;background:#07090f;color:#e2e8f0;font-family:system-ui,-apple-system,sans-serif;"></div>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  const btnDash = document.getElementById("modeBtnDashboard");
+  const btnEng = document.getElementById("modeBtnEngine");
+  const viewDash = document.getElementById("dashboardView");
+  const viewEng = document.getElementById("engineView");
+
+  btnDash.addEventListener("click", () => {
+    viewDash.style.display = "block";
+    viewEng.style.display = "none";
+    btnDash.style.background = "rgba(245,158,11,0.08)";
+    btnDash.style.borderBottom = "2px solid #f59e0b";
+    btnDash.style.color = "#f59e0b";
+    btnEng.style.background = "none";
+    btnEng.style.borderBottom = "2px solid transparent";
+    btnEng.style.color = "#4b5563";
+  });
+  btnEng.addEventListener("click", () => {
+    viewDash.style.display = "none";
+    viewEng.style.display = "block";
+    btnEng.style.background = "rgba(245,158,11,0.08)";
+    btnEng.style.borderBottom = "2px solid #f59e0b";
+    btnEng.style.color = "#f59e0b";
+    btnDash.style.background = "none";
+    btnDash.style.borderBottom = "2px solid transparent";
+    btnDash.style.color = "#4b5563";
+    if (window.initAurumEngine) window.initAurumEngine();
+  });
+});
+</script>
 
 <script>
 // ============================================================
@@ -742,6 +779,675 @@ window.addEventListener("load", async () => {
   setInterval(initPrices, PRICE_REFRESH_MS);
   setInterval(() => ensureAnalysis(state.asset), ANALYSIS_REFRESH_MS);
 });
+</script>
+
+<script>
+// ============================================================
+// AURUM ENGINE MODULE
+// Self-contained SMC/ICT trading discipline tool: 10-rule checklist,
+// risk/lot calculator with TP1-TP3 ladder, session-only trade log,
+// chart screenshot upload with optional Claude vision analysis (BYOK).
+// ============================================================
+
+const AE_RULES = [
+  { section: "① Trend — H1 / 4H / Daily", items: [
+    { id: 1, title: "H1 Trend Alignment", desc: "CHoCH + BOS confirmed on H1" },
+    { id: 2, title: "Vertex Dashboard", desc: "Dashboard shows BUY or SELL signal" },
+    { id: 3, title: "EMA Alignment", desc: "Price above EMA (longs) / below EMA (shorts)" },
+  ]},
+  { section: "② Setup — 1H / 15M / 5M", items: [
+    { id: 4, title: "M15 Structure Visible", desc: "Price retrace into demand / supply zone" },
+    { id: 5, title: "CHoCH Formed", desc: "Change of character — momentum shift visible" },
+    { id: 6, title: "BOS Confirmed", desc: "Break of structure validates new direction" },
+  ]},
+  { section: "③ Entry — 1M / 5M", items: [
+    { id: 7, title: "Retest Zone Reached", desc: "Price returned to OB / FVG / BOS level" },
+    { id: 8, title: "Confirmation Candle", desc: "Engulfing or rejection wick on retest" },
+    { id: 9, title: "Stop Loss Placed", desc: "Below / above structure — will NOT be widened" },
+    { id: 10, title: "R:R ≥ 1:2", desc: "Target gives at least 2× risk before entry" },
+  ]},
+];
+
+const AE_ASSETS = [
+  { id: "xauusd", label: "XAU/USD (Gold)", pipDecimal: 0.01, pipValuePerLotUSD: 1, defaultLot: 0.01 }, // $1/pip per 0.01 lot convention
+  { id: "btcusd", label: "BTC/USD", pipDecimal: 1, pipValuePerLotUSD: 0.01, defaultLot: 1, isCrypto: true }, // default: 1 lot = 1 BTC, $0.01/pip per lot at $1 move per unit — user-adjustable below
+  { id: "ethusd", label: "ETH/USD", pipDecimal: 0.1, pipValuePerLotUSD: 0.1, defaultLot: 1, isCrypto: true },
+];
+
+const aeState = {
+  initialized: false,
+  activeView: "scan", // scan | calc | log | engine_checklist | manual_checklist
+  manualChecklist: {}, // { ruleId: true/false }
+  aiChecklist: {},
+  scanData: null,
+  charts: { h1: null, m15: null, m5: null },
+  asset: "xauusd",
+  account: { equity: 10000, riskPct: 0.5, lotPerEntry: 0.01, mode: "fixed" }, // fixed = live account fixed lot; funded = risk-based
+  sl: { mode: "manual", pips: 40 },
+  tpCount: 3,
+  tpRR: { tp1: 1, tp2: 2, tp3: 2 }, // R:R multiples; tp3 special "x2 of SL" handled via rrMode
+  ratioMode: "optimizer", // optimizer | manual
+  ratioParts: { e1: 1, e2: 1, e3: 1 },
+  targetProfit: 30, // USD target from TP1+TP2 combined, for optimizer mode
+  trades: [], // session-only trade log
+  vpsEndpoint: "",
+  vpsConnected: false,
+  cryptoContractOverride: {}, // { btcusd: 1, ethusd: 1 } units per lot, user-adjustable
+};
+
+function aeGetAsset() { return AE_ASSETS.find(a => a.id === aeState.asset); }
+
+function aeGetApiKey() {
+  // Reuse the same Anthropic key the main dashboard uses (shared BYOK key across the whole site)
+  try { return localStorage.getItem("aurum_pro_anthropic_key") || ""; } catch (e) { return ""; }
+}
+
+function aeEsc(str) {
+  const div = document.createElement("div");
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
+// ---------- Calculator math ----------
+function aeComputeLotSizing() {
+  const asset = aeGetAsset();
+  const slPips = aeState.sl.pips || 1;
+  const contractUnits = aeState.cryptoContractOverride[aeState.asset] ?? asset.defaultLot;
+
+  // Pip value per 1.00 lot, scaled for asset type
+  let pipValuePerStandardLot;
+  if (asset.isCrypto) {
+    // 1 lot = contractUnits of the asset (user-adjustable). Pip = $1 move per unit by default for crypto (point-based, not traditional pips).
+    pipValuePerStandardLot = contractUnits;
+  } else {
+    pipValuePerStandardLot = asset.pipValuePerLotUSD * 100; // gold convention: $1/pip at 0.01 lot => $100/pip at 1.00 lot
+  }
+
+  let lots = [];
+  if (aeState.account.mode === "fixed") {
+    // Live account: fixed lot per entry, repeated across active entries
+    const fixedLot = aeState.account.lotPerEntry;
+    for (let i = 0; i < aeState.tpCount; i++) lots.push(fixedLot);
+  } else {
+    // Funded account: risk-based sizing
+    const riskUSD = aeState.account.equity * (aeState.account.riskPct / 100);
+    if (aeState.ratioMode === "manual") {
+      const parts = [aeState.ratioParts.e1, aeState.ratioParts.e2, aeState.ratioParts.e3].slice(0, aeState.tpCount);
+      const totalParts = parts.reduce((a, b) => a + b, 0) || 1;
+      parts.forEach(p => {
+        const entryRiskUSD = riskUSD * (p / totalParts);
+        const lot = entryRiskUSD / (slPips * pipValuePerStandardLot);
+        lots.push(lot);
+      });
+    } else {
+      // Optimizer: size E1+E2 to hit targetProfit combined at TP1+TP2, E3 takes remaining risk
+      // Simplified proportional approach: split riskUSD evenly first, then scale E1/E2 by their R:R to hit target
+      const baseRiskPerEntry = riskUSD / aeState.tpCount;
+      for (let i = 0; i < aeState.tpCount; i++) {
+        const lot = baseRiskPerEntry / (slPips * pipValuePerStandardLot);
+        lots.push(lot);
+      }
+    }
+  }
+  return { lots, pipValuePerStandardLot, slPips };
+}
+
+function aeComputeEntryResults() {
+  const { lots, pipValuePerStandardLot, slPips } = aeComputeLotSizing();
+  const rrValues = [aeState.tpRR.tp1, aeState.tpRR.tp2, aeState.tpRR.tp3].slice(0, aeState.tpCount);
+
+  const entries = lots.map((lot, i) => {
+    const riskUSD = lot * slPips * pipValuePerStandardLot;
+    const rr = rrValues[i] || 1;
+    const tpPips = slPips * rr;
+    const rewardUSD = lot * tpPips * pipValuePerStandardLot;
+    return { entryNum: i + 1, lot, riskUSD, rewardUSD, rr, tpPips };
+  });
+
+  const totalRisk = entries.reduce((sum, e) => sum + e.riskUSD, 0);
+  const maxReward = entries.reduce((sum, e) => sum + e.rewardUSD, 0);
+  const equity = aeState.account.equity || 1;
+  const pctOfEquity = (totalRisk / equity) * 100;
+  const combinedRR = totalRisk > 0 ? (maxReward / totalRisk) : 0;
+
+  // Locked-in profit logic (TP1+TP2 banked, TP3 rides risk-free if E1+E2 hit)
+  const lockedIn = entries.slice(0, Math.min(2, entries.length)).reduce((sum, e) => sum + e.rewardUSD, 0);
+  const rideProfit = entries.length > 2 ? entries[2].rewardUSD : 0;
+
+  return { entries, totalRisk, maxReward, pctOfEquity, combinedRR, lockedIn, rideProfit };
+}
+
+// ---------- Rendering ----------
+function aeRender() {
+  const root = document.getElementById("engineView");
+  if (!root) return;
+
+  root.innerHTML = `
+    <div style="display:flex;flex-direction:column;min-height:100%;">
+      <div style="padding:12px 14px;border-bottom:1px solid rgba(245,158,11,0.1);display:flex;align-items:center;gap:8px;">
+        <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#92400e);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;">⚜</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#f59e0b;">AURUM ENGINE</div>
+          <div style="font-size:9px;color:#334155;">SMC / ICT TRADING DISCIPLINE COCKPIT</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:4px;padding:8px 10px;overflow-x:auto;border-bottom:1px solid rgba(255,255,255,0.04);">
+        ${[["scan","📡 SCAN"],["checklist","⚜ CHECKLIST"],["calc","⚖ CALC"],["log","📋 LOG"],["connect","⚡ CONNECT"]].map(([id,label]) => `
+          <button data-aeview="${id}" class="ae-view-btn" style="padding:7px 12px;border-radius:8px;background:${aeState.activeView===id?'rgba(245,158,11,0.12)':'rgba(255,255,255,0.03)'};border:${aeState.activeView===id?'1px solid rgba(245,158,11,0.3)':'1px solid transparent'};color:${aeState.activeView===id?'#f59e0b':'#94a3b8'};font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;">${label}</button>
+        `).join("")}
+      </div>
+
+      <div style="flex:1;padding:14px;">
+        ${aeRenderView()}
+      </div>
+    </div>
+  `;
+  aeAttachHandlers();
+}
+
+function aeRenderView() {
+  if (aeState.activeView === "scan") return aeRenderScanView();
+  if (aeState.activeView === "checklist") return aeRenderChecklistView();
+  if (aeState.activeView === "calc") return aeRenderCalcView();
+  if (aeState.activeView === "log") return aeRenderLogView();
+  if (aeState.activeView === "connect") return aeRenderConnectView();
+  return "";
+}
+
+function aeRenderScanView() {
+  const hasKey = !!aeGetApiKey();
+  return `
+    <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:10px;">📡 Live Scan</div>
+      ${aeState.scanData ? aeRenderScanResult() : `
+        <div style="font-size:11px;color:#94A3B8;line-height:1.6;margin-bottom:12px;">No scan data yet. Upload chart screenshots below for AI analysis, or run a manual scan via your own Claude Code setup writing to a shared file.</div>
+      `}
+    </div>
+
+    <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:10px;">◈ Upload Chart Screenshots</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        ${["h1","m15","m5"].map(tf => `
+          <label style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(255,255,255,0.03);border:1px dashed rgba(245,158,11,0.25);border-radius:10px;padding:12px 6px;cursor:pointer;">
+            <span style="font-size:18px;">${tf==='h1'?'📈':tf==='m15'?'📊':'🎯'}</span>
+            <span style="font-size:9px;color:#94A3B8;font-weight:700;">${tf.toUpperCase()} ${tf==='h1'?'Trend':tf==='m15'?'Setup':'Entry'}</span>
+            <span style="font-size:8px;color:${aeState.charts[tf] ? '#10B981' : '#475569'};">${aeState.charts[tf] ? '✓ Loaded' : 'Tap to upload'}</span>
+            <input type="file" accept="image/*" data-chart-tf="${tf}" style="display:none;" />
+          </label>
+        `).join("")}
+      </div>
+      ${!hasKey ? `<div style="font-size:10px;color:#475569;">💡 Add your Anthropic API key on the Price Dashboard tab (🔑 icon) to enable AI chart analysis here.</div>` : `
+        <button id="aeAnalyzeChartsBtn" style="width:100%;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:10px;padding:10px;color:#000;font-size:11px;font-weight:700;cursor:pointer;" ${Object.values(aeState.charts).every(c => !c) ? 'disabled' : ''}>⚡ Analyze Charts with AI</button>
+      `}
+      ${aeState.scanLoading ? `<div style="font-size:10px;color:#f59e0b;margin-top:8px;">🤖 Claude is reading your charts...</div>` : ""}
+      ${aeState.scanError ? `<div style="font-size:10px;color:#F87171;margin-top:8px;">⚠️ ${aeEsc(aeState.scanError)}</div>` : ""}
+    </div>
+
+    <div style="background:rgba(245,158,11,0.06);border-radius:12px;padding:16px;">
+      <div style="font-size:10px;font-weight:700;color:#f59e0b;margin-bottom:8px;">◈ Daily Scan Prompt — for use with Claude Code on your VPS</div>
+      <div id="aeCopyPrompt" style="background:rgba(7,9,15,0.8);border-radius:8px;padding:10px;font-size:10px;color:#94A3B8;font-family:monospace;cursor:pointer;line-height:1.5;">Aurum Engine scan — XAUUSD. Read rules.json, check XAUUSD on H1/M15/M5, run the full 10-rule checklist, write results to ~/aurum_scan.json, then send me a Telegram summary.</div>
+      <div style="font-size:9px;color:#475569;margin-top:6px;">Tap to copy · Paste into Claude Code terminal on your VPS for automated scans</div>
+    </div>
+  `;
+}
+
+function aeRenderScanResult() {
+  const d = aeState.scanData;
+  const passCount = AE_RULES.flatMap(s => s.items).filter(r => d.checklist && d.checklist[r.id]).length;
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div>
+        <div style="font-size:9px;color:#475569;">Daily Bias</div>
+        <div style="font-size:16px;font-weight:700;color:${d.bias === 'BUY' ? '#10B981' : d.bias === 'SELL' ? '#EF4444' : '#F59E0B'};">${aeEsc(d.bias || '—')}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:9px;color:#475569;">Rules Confirmed</div>
+        <div style="font-size:16px;font-weight:700;color:${passCount >= 10 ? '#10B981' : '#F59E0B'};">${passCount} / 10</div>
+      </div>
+    </div>
+    ${d.keyZones ? `<div style="margin-bottom:8px;"><div style="font-size:9px;color:#475569;margin-bottom:4px;">Key Zones</div><div style="font-size:11px;color:#CBD5E1;">${aeEsc(d.keyZones)}</div></div>` : ""}
+    ${d.notes ? `<div><div style="font-size:9px;color:#475569;margin-bottom:4px;">AI Analysis Notes</div><div style="font-size:11px;color:#CBD5E1;line-height:1.5;">${aeEsc(d.notes)}</div></div>` : ""}
+    ${passCount >= 10 ? `<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:8px 10px;margin-top:10px;font-size:10px;color:#10B981;font-weight:700;">⚜ SETUP FOUND — All 10 rules confirmed. Open Calculator → Log the trade.</div>` : ""}
+  `;
+}
+
+function aeRenderChecklistView() {
+  const checked = aeState.manualChecklist;
+  const passCount = Object.values(checked).filter(Boolean).length;
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#f59e0b;">⚜ Aurum Engine Checklist</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;font-weight:700;color:${passCount >= 10 ? '#10B981' : '#94A3B8'};">${passCount} / 10</span>
+        <button id="aeResetChecklist" style="background:none;border:none;color:#475569;font-size:10px;cursor:pointer;">↺ Reset</button>
+      </div>
+    </div>
+    ${AE_RULES.map(section => `
+      <div style="margin-bottom:14px;">
+        <div style="font-size:10px;color:#475569;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">${aeEsc(section.section)}</div>
+        ${section.items.map(rule => `
+          <div style="background:rgba(13,20,33,0.9);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="flex:1;">
+              <div style="font-size:11px;font-weight:600;color:#e2e8f0;">${rule.id}. ${aeEsc(rule.title)}</div>
+              <div style="font-size:9px;color:#475569;margin-top:2px;">${aeEsc(rule.desc)}</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0;margin-left:10px;">
+              <button data-rule="${rule.id}" data-val="true" class="ae-rule-btn" style="width:32px;height:28px;border-radius:6px;border:1px solid ${checked[rule.id]===true?'#10B981':'rgba(255,255,255,0.1)'};background:${checked[rule.id]===true?'rgba(16,185,129,0.15)':'transparent'};color:${checked[rule.id]===true?'#10B981':'#475569'};font-size:11px;cursor:pointer;">✓</button>
+              <button data-rule="${rule.id}" data-val="false" class="ae-rule-btn" style="width:32px;height:28px;border-radius:6px;border:1px solid ${checked[rule.id]===false?'#EF4444':'rgba(255,255,255,0.1)'};background:${checked[rule.id]===false?'rgba(239,68,68,0.15)':'transparent'};color:${checked[rule.id]===false?'#EF4444':'#475569'};font-size:11px;cursor:pointer;">✕</button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `).join("")}
+    ${passCount >= 10 ? `
+      <button id="aeGoToCalcFromChecklist" style="width:100%;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:10px;padding:12px;color:#000;font-size:11px;font-weight:700;cursor:pointer;margin-top:8px;">→ Send to Calculator</button>
+    ` : ""}
+  `;
+}
+
+function aeRenderCalcView() {
+  const asset = aeGetAsset();
+  const results = aeComputeEntryResults();
+
+  return `
+    <div style="margin-bottom:14px;">
+      <div style="font-size:10px;color:#475569;margin-bottom:6px;text-transform:uppercase;">Asset</div>
+      <select id="aeAssetSelect" style="width:100%;background:rgba(13,20,33,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 10px;color:#e2e8f0;font-size:12px;">
+        ${AE_ASSETS.map(a => `<option value="${a.id}" ${a.id===aeState.asset?'selected':''}>${aeEsc(a.label)}</option>`).join("")}
+      </select>
+      ${asset.isCrypto ? `
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+          <span style="font-size:10px;color:#475569;">Units per 1.00 lot (check your broker):</span>
+          <input id="aeCryptoContract" type="number" step="0.01" value="${aeState.cryptoContractOverride[aeState.asset] ?? asset.defaultLot}" style="width:80px;background:rgba(13,20,33,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 8px;color:#e2e8f0;font-size:11px;" />
+        </div>
+      ` : ""}
+    </div>
+
+    <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:10px;font-weight:700;color:#f59e0b;margin-bottom:10px;">◈ Account & Risk</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button data-acct-mode="fixed" class="ae-acct-mode-btn" style="flex:1;padding:8px;border-radius:8px;border:1px solid ${aeState.account.mode==='fixed'?'#10B981':'rgba(255,255,255,0.1)'};background:${aeState.account.mode==='fixed'?'rgba(16,185,129,0.1)':'transparent'};color:${aeState.account.mode==='fixed'?'#10B981':'#94A3B8'};font-size:10px;font-weight:700;cursor:pointer;">🟢 Live Account</button>
+        <button data-acct-mode="funded" class="ae-acct-mode-btn" style="flex:1;padding:8px;border-radius:8px;border:1px solid ${aeState.account.mode==='funded'?'#f59e0b':'rgba(255,255,255,0.1)'};background:${aeState.account.mode==='funded'?'rgba(245,158,11,0.1)':'transparent'};color:${aeState.account.mode==='funded'?'#f59e0b':'#94A3B8'};font-size:10px;font-weight:700;cursor:pointer;">⚜ Funded Account</button>
+      </div>
+      ${aeState.account.mode === "fixed" ? `
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:10px;color:#475569;flex:1;">Lot per entry (fixed)</span>
+          <input id="aeLotPerEntry" type="number" step="0.01" value="${aeState.account.lotPerEntry}" style="width:80px;background:rgba(7,9,15,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;color:#e2e8f0;font-size:11px;" />
+        </div>
+        <div style="font-size:9px;color:#475569;margin-top:4px;">= ${(aeState.account.lotPerEntry * aeState.tpCount).toFixed(2)} lots total (${aeState.tpCount} × ${aeState.account.lotPerEntry})</div>
+      ` : `
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <div style="flex:1;">
+            <span style="font-size:9px;color:#475569;">Equity</span>
+            <input id="aeEquity" type="number" value="${aeState.account.equity}" style="width:100%;background:rgba(7,9,15,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;color:#e2e8f0;font-size:11px;margin-top:2px;" />
+          </div>
+          <div style="flex:1;">
+            <span style="font-size:9px;color:#475569;">Risk %</span>
+            <input id="aeRiskPct" type="number" step="0.1" value="${aeState.account.riskPct}" style="width:100%;background:rgba(7,9,15,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;color:#e2e8f0;font-size:11px;margin-top:2px;" />
+          </div>
+        </div>
+        <div style="font-size:9px;color:#475569;">= $${(aeState.account.equity * aeState.account.riskPct / 100).toFixed(2)} risk per setup</div>
+      `}
+    </div>
+
+    <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:10px;font-weight:700;color:#f59e0b;margin-bottom:10px;">◈ Stop Loss & Targets</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:10px;color:#475569;flex:1;">SL Distance (${asset.isCrypto ? 'points' : 'pips'})</span>
+        <input id="aeSlPips" type="number" value="${aeState.sl.pips}" style="width:80px;background:rgba(7,9,15,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;color:#e2e8f0;font-size:11px;" />
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:10px;color:#475569;flex:1;">Number of TPs</span>
+        <div style="display:flex;gap:4px;">
+          ${[1,2,3].map(n => `<button data-tpcount="${n}" class="ae-tpcount-btn" style="width:28px;height:28px;border-radius:6px;border:1px solid ${aeState.tpCount===n?'#f59e0b':'rgba(255,255,255,0.1)'};background:${aeState.tpCount===n?'rgba(245,158,11,0.15)':'transparent'};color:${aeState.tpCount===n?'#f59e0b':'#94A3B8'};font-size:11px;cursor:pointer;">${n}</button>`).join("")}
+        </div>
+      </div>
+      <div style="font-size:9px;color:#475569;margin-bottom:6px;">R:R per target (multiple of SL distance)</div>
+      <div style="display:flex;gap:8px;">
+        ${Array.from({length: aeState.tpCount}).map((_, i) => `
+          <div style="flex:1;">
+            <span style="font-size:9px;color:#475569;">TP${i+1}</span>
+            <input data-tprr="${i+1}" type="number" step="0.1" value="${[aeState.tpRR.tp1, aeState.tpRR.tp2, aeState.tpRR.tp3][i]}" style="width:100%;background:rgba(7,9,15,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;color:#e2e8f0;font-size:11px;margin-top:2px;" />
+          </div>
+        `).join("")}
+      </div>
+    </div>
+
+    <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:10px;font-weight:700;color:#f59e0b;margin-bottom:10px;">⚡ Position Sizing Results</div>
+      ${results.entries.map(e => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div>
+            <div style="font-size:11px;font-weight:600;">Entry ${e.entryNum} → TP${e.entryNum}</div>
+            <div style="font-size:9px;color:#475569;">${e.lot.toFixed(3)} lots · R:R 1:${e.rr}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:11px;color:#10B981;">+$${e.rewardUSD.toFixed(2)}</div>
+            <div style="font-size:9px;color:#F87171;">-$${e.riskUSD.toFixed(2)} risk</div>
+          </div>
+        </div>
+      `).join("")}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
+        <div style="background:rgba(239,68,68,0.08);border-radius:8px;padding:10px;">
+          <div style="font-size:9px;color:#475569;">Total Risk</div>
+          <div style="font-size:14px;font-weight:700;color:#F87171;">$${results.totalRisk.toFixed(2)}</div>
+          <div style="font-size:9px;color:#475569;">${results.pctOfEquity.toFixed(2)}% of equity</div>
+        </div>
+        <div style="background:rgba(16,185,129,0.08);border-radius:8px;padding:10px;">
+          <div style="font-size:9px;color:#475569;">Max Reward</div>
+          <div style="font-size:14px;font-weight:700;color:#10B981;">$${results.maxReward.toFixed(2)}</div>
+          <div style="font-size:9px;color:#475569;">Combined R:R 1:${results.combinedRR.toFixed(1)}</div>
+        </div>
+      </div>
+      ${aeState.tpCount > 2 ? `
+        <div style="margin-top:10px;font-size:10px;color:#94A3B8;line-height:1.5;">
+          <strong style="color:#f59e0b;">Strategy:</strong> Entries 1 & 2 bank $${results.lockedIn.toFixed(2)} combined at TP1+TP2. Entry 3 rides risk-free toward TP3 (move to breakeven once TP1+TP2 hit) for an additional $${results.rideProfit.toFixed(2)}.
+        </div>
+      ` : ""}
+    </div>
+
+    <button id="aeLogFromCalc" style="width:100%;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:10px;padding:12px;color:#000;font-size:11px;font-weight:700;cursor:pointer;">+ Log This Trade</button>
+  `;
+}
+
+function aeRenderLogView() {
+  const trades = aeState.trades;
+  const open = trades.filter(t => t.status === "open").length;
+  const closed = trades.filter(t => t.status === "closed").length;
+  const wins = trades.filter(t => t.status === "closed" && t.pnl > 0).length;
+  const winRate = closed > 0 ? ((wins / closed) * 100).toFixed(0) + "%" : "—";
+  const totalPnl = trades.filter(t => t.status === "closed").reduce((sum, t) => sum + (t.pnl || 0), 0);
+
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#f59e0b;">📋 Daily Trade Log</div>
+      <button id="aeNewTradeBtn" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:6px 12px;color:#f59e0b;font-size:10px;font-weight:700;cursor:pointer;">+ New Trade</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+      <div style="background:rgba(13,20,33,0.9);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:16px;font-weight:700;">${trades.length}</div>
+        <div style="font-size:9px;color:#475569;">Trades</div>
+      </div>
+      <div style="background:rgba(13,20,33,0.9);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:16px;font-weight:700;color:#f59e0b;">${open}</div>
+        <div style="font-size:9px;color:#475569;">Open</div>
+      </div>
+      <div style="background:rgba(13,20,33,0.9);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:16px;font-weight:700;color:${totalPnl >= 0 ? '#10B981' : '#EF4444'};">$${totalPnl.toFixed(0)}</div>
+        <div style="font-size:9px;color:#475569;">P&L</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:#475569;margin-bottom:14px;padding:0 4px;">
+      <span>Closed: ${closed}</span><span>Win Rate: ${winRate}</span>
+    </div>
+
+    ${trades.length === 0 ? `
+      <div style="text-align:center;padding:30px 20px;color:#475569;font-size:11px;">No trades logged yet this session.<br>Trades reset on page reload (session-only for now).</div>
+    ` : trades.slice().reverse().map(t => `
+      <div style="background:rgba(13,20,33,0.9);border-left:3px solid ${t.direction==='LONG'?'#10B981':'#EF4444'};border-radius:10px;padding:12px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span style="font-size:11px;font-weight:700;color:${t.direction==='LONG'?'#10B981':'#EF4444'};">${t.direction} · ${aeEsc(t.asset || 'XAUUSD')}</span>
+          <span style="font-size:9px;color:#475569;">${new Date(t.timestamp).toLocaleTimeString()}</span>
+        </div>
+        <div style="font-size:10px;color:#94A3B8;">Entry: ${t.entry || '—'} · SL: ${t.slPips || '—'} pips</div>
+        ${t.notes ? `<div style="font-size:10px;color:#475569;margin-top:4px;">${aeEsc(t.notes)}</div>` : ""}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+          <span style="font-size:9px;padding:2px 8px;border-radius:10px;background:${t.status==='open'?'rgba(245,158,11,0.15)':'rgba(255,255,255,0.05)'};color:${t.status==='open'?'#f59e0b':'#94A3B8'};">${t.status.toUpperCase()}</span>
+          ${t.status==='open' ? `<button data-close-trade="${t.id}" style="background:none;border:none;color:#475569;font-size:9px;text-decoration:underline;cursor:pointer;">Mark closed</button>` : `<span style="font-size:10px;color:${t.pnl>=0?'#10B981':'#EF4444'};">${t.pnl>=0?'+':''}$${(t.pnl||0).toFixed(2)}</span>`}
+        </div>
+      </div>
+    `).join("")}
+  `;
+}
+
+function aeRenderConnectView() {
+  return `
+    <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:10px;">⚡ VPS Endpoint Config</div>
+      <div style="font-size:10px;color:#94A3B8;line-height:1.5;margin-bottom:10px;">Point to your own VPS server running a status API. This page will poll <code style="color:#f59e0b;">/status</code>, <code style="color:#f59e0b;">/positions</code> and <code style="color:#f59e0b;">/alerts</code> for live MT5 position and Telegram data. Requires your own backend — this static page cannot run that server itself.</div>
+      <input id="aeVpsInput" type="text" placeholder="http://YOUR-VPS-IP:3000" value="${aeEsc(aeState.vpsEndpoint)}" style="width:100%;background:rgba(7,9,15,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 10px;color:#e2e8f0;font-size:12px;margin-bottom:8px;" />
+      <button id="aeVpsConnectBtn" style="width:100%;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:8px;padding:10px;color:#000;font-size:11px;font-weight:700;cursor:pointer;">Connect</button>
+      <div style="margin-top:10px;font-size:10px;color:${aeState.vpsConnected ? '#10B981' : '#475569'};">${aeState.vpsConnected ? '✅ Connected' : '○ Not connected'}</div>
+    </div>
+
+    <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:10px;">Live Positions — MT5</div>
+      ${aeState.vpsConnected ? `<div style="font-size:10px;color:#475569;">No open positions reported.</div>` : `<div style="font-size:10px;color:#475569;">Connect your VPS endpoint above to see live MT5 positions here.</div>`}
+    </div>
+
+    <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:16px;">
+      <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:10px;">✈ Telegram Alerts</div>
+      <div style="font-size:10px;color:#475569;">Telegram alerts are sent from your VPS via your own bot. Configure your bot token and chat ID on your server — this page only displays status once connected.</div>
+    </div>
+  `;
+}
+
+// ---------- Claude vision analysis for uploaded charts ----------
+async function aeAnalyzeCharts() {
+  const apiKey = aeGetApiKey();
+  if (!apiKey) return;
+
+  const images = Object.entries(aeState.charts).filter(([tf, data]) => data);
+  if (images.length === 0) return;
+
+  aeState.scanLoading = true;
+  aeState.scanError = null;
+  aeRender();
+
+  try {
+    const content = [
+      { type: "text", text: `You are analyzing trading charts for AURUM ENGINE, an SMC/ICT (Smart Money Concepts) trading system. I've uploaded ${images.length} chart screenshot(s): ${images.map(([tf]) => tf.toUpperCase()).join(", ")}.
+
+Analyze these charts against this 10-rule checklist:
+${AE_RULES.flatMap(s => s.items).map(r => `${r.id}. ${r.title}: ${r.desc}`).join("\n")}
+
+Respond ONLY with valid JSON, no markdown, in this exact shape:
+{
+  "bias": "BUY" | "SELL" | "NEUTRAL",
+  "checklist": { "1": true|false, "2": true|false, ..., "10": true|false },
+  "keyZones": "<brief description of key support/resistance/OB/FVG zones identified>",
+  "notes": "<2-3 sentence analysis summary>"
+}` }
+    ];
+
+    images.forEach(([tf, dataUrl]) => {
+      const base64 = dataUrl.split(",")[1];
+      const mediaType = dataUrl.match(/data:(image\/[a-z]+);/)?.[1] || "image/png";
+      content.push({ type: "image", source: { type: "base64", media_type: mediaType, data: base64 } });
+    });
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1000,
+        messages: [{ role: "user", content }]
+      })
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      throw new Error(`Claude API HTTP ${res.status}: ${errText.slice(0, 150)}`);
+    }
+
+    const data = await res.json();
+    const textBlock = data.content?.find(b => b.type === "text");
+    if (!textBlock) throw new Error("No text in Claude response");
+    let cleaned = textBlock.text.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "");
+    aeState.scanData = JSON.parse(cleaned);
+  } catch (e) {
+    console.warn("Chart analysis failed:", e.message);
+    aeState.scanError = e.message;
+  }
+  aeState.scanLoading = false;
+  aeRender();
+}
+
+// ---------- Event handlers ----------
+function aeAttachHandlers() {
+  document.querySelectorAll(".ae-view-btn").forEach(btn => {
+    btn.addEventListener("click", () => { aeState.activeView = btn.getAttribute("data-aeview"); aeRender(); });
+  });
+
+  document.querySelectorAll('[data-chart-tf]').forEach(input => {
+    input.addEventListener("change", (e) => {
+      const tf = input.getAttribute("data-chart-tf");
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        aeState.charts[tf] = ev.target.result;
+        aeRender();
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  const analyzeBtn = document.getElementById("aeAnalyzeChartsBtn");
+  if (analyzeBtn) analyzeBtn.addEventListener("click", aeAnalyzeCharts);
+
+  const copyPrompt = document.getElementById("aeCopyPrompt");
+  if (copyPrompt) {
+    copyPrompt.addEventListener("click", () => {
+      navigator.clipboard?.writeText(copyPrompt.textContent).catch(() => {});
+      copyPrompt.style.opacity = "0.5";
+      setTimeout(() => { copyPrompt.style.opacity = "1"; }, 200);
+    });
+  }
+
+  document.querySelectorAll(".ae-rule-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const ruleId = btn.getAttribute("data-rule");
+      const val = btn.getAttribute("data-val") === "true";
+      aeState.manualChecklist[ruleId] = val;
+      aeRender();
+    });
+  });
+  const resetChecklist = document.getElementById("aeResetChecklist");
+  if (resetChecklist) resetChecklist.addEventListener("click", () => { aeState.manualChecklist = {}; aeRender(); });
+  const goToCalc = document.getElementById("aeGoToCalcFromChecklist");
+  if (goToCalc) goToCalc.addEventListener("click", () => { aeState.activeView = "calc"; aeRender(); });
+
+  const assetSelect = document.getElementById("aeAssetSelect");
+  if (assetSelect) assetSelect.addEventListener("change", (e) => { aeState.asset = e.target.value; aeRender(); });
+  const cryptoContract = document.getElementById("aeCryptoContract");
+  if (cryptoContract) cryptoContract.addEventListener("change", (e) => {
+    aeState.cryptoContractOverride[aeState.asset] = parseFloat(e.target.value) || 1;
+    aeRender();
+  });
+
+  document.querySelectorAll(".ae-acct-mode-btn").forEach(btn => {
+    btn.addEventListener("click", () => { aeState.account.mode = btn.getAttribute("data-acct-mode"); aeRender(); });
+  });
+  const lotPerEntry = document.getElementById("aeLotPerEntry");
+  if (lotPerEntry) lotPerEntry.addEventListener("change", (e) => { aeState.account.lotPerEntry = parseFloat(e.target.value) || 0.01; aeRender(); });
+  const equityInput = document.getElementById("aeEquity");
+  if (equityInput) equityInput.addEventListener("change", (e) => { aeState.account.equity = parseFloat(e.target.value) || 0; aeRender(); });
+  const riskPctInput = document.getElementById("aeRiskPct");
+  if (riskPctInput) riskPctInput.addEventListener("change", (e) => { aeState.account.riskPct = parseFloat(e.target.value) || 0; aeRender(); });
+
+  const slPipsInput = document.getElementById("aeSlPips");
+  if (slPipsInput) slPipsInput.addEventListener("change", (e) => { aeState.sl.pips = parseFloat(e.target.value) || 1; aeRender(); });
+
+  document.querySelectorAll(".ae-tpcount-btn").forEach(btn => {
+    btn.addEventListener("click", () => { aeState.tpCount = parseInt(btn.getAttribute("data-tpcount")); aeRender(); });
+  });
+  document.querySelectorAll('[data-tprr]').forEach(input => {
+    input.addEventListener("change", (e) => {
+      const n = input.getAttribute("data-tprr");
+      aeState.tpRR["tp" + n] = parseFloat(e.target.value) || 1;
+      aeRender();
+    });
+  });
+
+  const logFromCalc = document.getElementById("aeLogFromCalc");
+  if (logFromCalc) logFromCalc.addEventListener("click", () => {
+    const results = aeComputeEntryResults();
+    aeState.trades.push({
+      id: Date.now(),
+      timestamp: Date.now(),
+      asset: aeGetAsset().label,
+      direction: "LONG", // default; quick-add doesn't ask, full "New Trade" form does
+      entry: "—",
+      slPips: aeState.sl.pips,
+      status: "open",
+      notes: `Logged from calculator: ${aeState.tpCount} entries, total risk $${results.totalRisk.toFixed(2)}`,
+      pnl: 0
+    });
+    aeState.activeView = "log";
+    aeRender();
+  });
+
+  const newTradeBtn = document.getElementById("aeNewTradeBtn");
+  if (newTradeBtn) newTradeBtn.addEventListener("click", aeShowNewTradeModal);
+
+  document.querySelectorAll('[data-close-trade]').forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = parseFloat(btn.getAttribute("data-close-trade"));
+      const trade = aeState.trades.find(t => t.id === id);
+      if (trade) {
+        const pnlStr = prompt("Enter P&L for this trade (USD, negative for loss):", "0");
+        if (pnlStr !== null) {
+          trade.status = "closed";
+          trade.pnl = parseFloat(pnlStr) || 0;
+          aeRender();
+        }
+      }
+    });
+  });
+
+  const vpsConnectBtn = document.getElementById("aeVpsConnectBtn");
+  if (vpsConnectBtn) {
+    vpsConnectBtn.addEventListener("click", async () => {
+      const input = document.getElementById("aeVpsInput");
+      aeState.vpsEndpoint = input ? input.value.trim() : "";
+      if (!aeState.vpsEndpoint) { aeRender(); return; }
+      try {
+        const res = await fetch(aeState.vpsEndpoint + "/status", { mode: "cors" });
+        aeState.vpsConnected = res.ok;
+      } catch (e) {
+        aeState.vpsConnected = false;
+        console.warn("VPS connect failed:", e.message);
+      }
+      aeRender();
+    });
+  }
+}
+
+function aeShowNewTradeModal() {
+  const direction = confirm("Click OK for LONG, Cancel for SHORT") ? "LONG" : "SHORT";
+  const entry = prompt("Entry price:", "");
+  const slPips = prompt("Stop loss distance (pips/points):", aeState.sl.pips);
+  const notes = prompt("Notes (optional):", "");
+  aeState.trades.push({
+    id: Date.now(),
+    timestamp: Date.now(),
+    asset: aeGetAsset().label,
+    direction,
+    entry: entry || "—",
+    slPips: slPips || aeState.sl.pips,
+    status: "open",
+    notes: notes || "",
+    pnl: 0
+  });
+  aeRender();
+}
+
+// ---------- Init ----------
+window.initAurumEngine = function() {
+  if (aeState.initialized) return;
+  aeState.initialized = true;
+  aeRender();
+};
+
 </script>
 </body>
 </html>
