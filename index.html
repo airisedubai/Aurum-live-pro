@@ -1,1168 +1,747 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Agent Dashboard - Crypto, Forex, Gold & Stocks</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #1a1a2e;
-            --secondary: #16213e;
-            --accent: #00d4ff;
-            --success: #51cf66;
-            --warning: #ff922b;
-            --danger: #ff6b6b;
-            --text: #e0e0e0;
-            --text-light: #a0a0a0;
-        }
-
-        body {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: var(--text);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        header {
-            background: rgba(22, 33, 62, 0.9);
-            border-bottom: 2px solid var(--accent);
-            padding: 1.5rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
-
-        .header-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .logo-icon {
-            font-size: 2rem;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: var(--text);
-            text-decoration: none;
-            transition: color 0.3s;
-            cursor: pointer;
-            font-size: 0.95rem;
-        }
-
-        .nav-links a:hover {
-            color: var(--accent);
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .hero {
-            text-align: center;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-        }
-
-        .hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--accent), #00ff88);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero p {
-            font-size: 1rem;
-            color: var(--text-light);
-            margin-bottom: 1rem;
-        }
-
-        /* Asset Selector */
-        .asset-selector-section {
-            background: rgba(26, 26, 46, 0.8);
-            border: 2px solid var(--accent);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            backdrop-filter: blur(10px);
-        }
-
-        .asset-selector-title {
-            font-size: 1.3rem;
-            color: var(--accent);
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .asset-categories {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .category-group {
-            background: rgba(0, 212, 255, 0.05);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            border-radius: 8px;
-            padding: 1.2rem;
-        }
-
-        .category-name {
-            font-weight: bold;
-            color: var(--accent);
-            margin-bottom: 0.8rem;
-            font-size: 0.95rem;
-        }
-
-        .asset-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .asset-btn {
-            background: rgba(0, 212, 255, 0.1);
-            color: var(--text);
-            border: 1px solid var(--accent);
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.3s;
-            font-weight: 500;
-        }
-
-        .asset-btn:hover {
-            background: rgba(0, 212, 255, 0.2);
-            border-color: #00ff88;
-        }
-
-        .asset-btn.active {
-            background: linear-gradient(135deg, var(--accent), #00ff88);
-            color: var(--primary);
-            border-color: #00ff88;
-            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
-        }
-
-        .search-input-group {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .search-input {
-            flex: 1;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--accent);
-            border-radius: 8px;
-            padding: 0.8rem 1rem;
-            color: var(--text);
-            font-size: 0.95rem;
-        }
-
-        .search-input::placeholder {
-            color: var(--text-light);
-        }
-
-        .search-input:focus {
-            outline: none;
-            background: rgba(0, 0, 0, 0.5);
-            border-color: #00ff88;
-            box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .card {
-            background: rgba(26, 26, 46, 0.8);
-            border: 1px solid var(--accent);
-            border-radius: 12px;
-            padding: 2rem;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s;
-            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 48px rgba(0, 212, 255, 0.2);
-            border-color: #00ff88;
-        }
-
-        .card-title {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .card-subtitle {
-            font-size: 0.9rem;
-            color: var(--text-light);
-            margin-bottom: 1rem;
-        }
-
-        .card-icon {
-            font-size: 2rem;
-        }
-
-        .metric {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.8rem 0;
-            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
-        }
-
-        .metric:last-child {
-            border-bottom: none;
-        }
-
-        .metric-label {
-            color: var(--text-light);
-        }
-
-        .metric-value {
-            font-weight: bold;
-            color: var(--accent);
-            font-size: 1.1rem;
-        }
-
-        .price-display {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--accent);
-            margin: 1rem 0;
-            text-align: center;
-        }
-
-        .price-change {
-            font-size: 1.1rem;
-            text-align: center;
-            padding: 0.8rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-        }
-
-        .price-change.positive {
-            background: rgba(81, 207, 102, 0.1);
-            color: var(--success);
-            border: 1px solid var(--success);
-        }
-
-        .price-change.negative {
-            background: rgba(255, 107, 107, 0.1);
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-
-        .signal {
-            font-size: 1.3rem;
-            font-weight: bold;
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-            margin: 1rem 0;
-        }
-
-        .signal.strong-buy {
-            background: rgba(81, 207, 102, 0.2);
-            color: var(--success);
-            border: 2px solid var(--success);
-        }
-
-        .signal.buy {
-            background: rgba(81, 207, 102, 0.15);
-            color: var(--success);
-            border: 1px solid var(--success);
-        }
-
-        .signal.hold {
-            background: rgba(255, 146, 43, 0.2);
-            color: var(--warning);
-            border: 2px solid var(--warning);
-        }
-
-        .signal.sell {
-            background: rgba(255, 107, 107, 0.15);
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-
-        .signal.strong-sell {
-            background: rgba(255, 107, 107, 0.2);
-            color: var(--danger);
-            border: 2px solid var(--danger);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-
-        .stat-box {
-            background: rgba(0, 212, 255, 0.05);
-            border: 1px solid var(--accent);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: var(--accent);
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            margin-top: 0.5rem;
-        }
-
-        .recommendations {
-            margin: 1.5rem 0;
-        }
-
-        .recommendation-item {
-            background: rgba(0, 212, 255, 0.05);
-            border-left: 3px solid var(--accent);
-            padding: 0.8rem 1rem;
-            margin: 0.5rem 0;
-            border-radius: 4px;
-        }
-
-        .full-width {
-            grid-column: 1 / -1;
-        }
-
-        .share-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, var(--accent), #00ff88);
-            color: var(--primary);
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            font-size: 0.95rem;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 212, 255, 0.3);
-        }
-
-        .btn-secondary {
-            background: rgba(0, 212, 255, 0.2);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(0, 212, 255, 0.3);
-        }
-
-        .tabs {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 2px solid rgba(0, 212, 255, 0.1);
-            flex-wrap: wrap;
-        }
-
-        .tab {
-            background: none;
-            border: none;
-            color: var(--text-light);
-            padding: 0.8rem 1.5rem;
-            cursor: pointer;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-            border-bottom: 2px solid transparent;
-        }
-
-        .tab.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-light);
-            border-top: 1px solid rgba(0, 212, 255, 0.1);
-            margin-top: 3rem;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .spinner {
-            border: 3px solid rgba(0, 212, 255, 0.1);
-            border-top: 3px solid var(--accent);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 1.8rem;
-            }
-
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-
-            .nav-links {
-                gap: 1rem;
-                font-size: 0.85rem;
-            }
-
-            .asset-categories {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AURUM PRO - Live Gold & Crypto Trading Dashboard</title>
+<meta name="description" content="AURUM PRO - Live gold and crypto trading signals, AI analysis, and price tracking for Dubai traders.">
+<style>
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: #07090f; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+  }
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-thumb { background: rgba(245,158,11,0.2); border-radius: 2px; }
+  #root { display: flex; flex-direction: column; height: 100vh; }
+  button { font-family: inherit; }
+  textarea { font-family: inherit; }
+</style>
 </head>
 <body>
-    <header>
-        <div class="header-container">
-            <div class="logo">
-                <span class="logo-icon">💰</span>
-                <span>Trading Dashboard</span>
-            </div>
-            <ul class="nav-links">
-                <li><a onclick="switchTab('markets')">Markets</a></li>
-                <li><a onclick="switchTab('watchlist')">Watchlist</a></li>
-                <li><a onclick="location.reload()">Refresh</a></li>
-            </ul>
+<div id="root"></div>
+
+<script>
+// ============================================================
+// CONFIG
+// TwelveData key is low-risk free tier, kept embedded.
+// Anthropic key is BYOK (bring your own key): each visitor enters their own key,
+// stored in their browser's localStorage only. Never sent anywhere except
+// directly to Anthropic's API from the visitor's own browser.
+// ============================================================
+const TWELVEDATA_API_KEY = "53ca0f596b344545b65f4384aa2fc6ef";
+const CLAUDE_MODEL = "claude-haiku-4-5-20251001";
+const PRICE_REFRESH_MS = 60000;       // 1 minute price refresh
+const ANALYSIS_REFRESH_MS = 300000;   // 5 minute analysis cache refresh per asset
+const USD_AED = 3.673;
+const LS_KEY_STORAGE = "aurum_pro_anthropic_key";
+
+function getStoredApiKey() {
+  try { return localStorage.getItem(LS_KEY_STORAGE) || ""; } catch (e) { return ""; }
+}
+function setStoredApiKey(key) {
+  try {
+    if (key) localStorage.setItem(LS_KEY_STORAGE, key);
+    else localStorage.removeItem(LS_KEY_STORAGE);
+  } catch (e) { console.warn("localStorage unavailable:", e.message); }
+}
+function hasApiKey() {
+  const k = getStoredApiKey();
+  return !!(k && k.trim().length > 0);
+}
+
+// ============================================================
+// ASSET CONFIG
+// ============================================================
+const ASSETS = [
+  { id: "gold", label: "Gold",    sym: "XAUUSD", emoji: "🥇", color: "#F59E0B", source: "twelvedata", tdSymbol: "XAU/USD" },
+  { id: "btc",  label: "Bitcoin", sym: "BTCUSD", emoji: "₿",  color: "#F97316", source: "coingecko",  cgId: "bitcoin" },
+  { id: "eth",  label: "Ether",   sym: "ETHUSD", emoji: "Ξ",  color: "#8B5CF6", source: "coingecko",  cgId: "ethereum" },
+  { id: "sol",  label: "Solana",  sym: "SOLUSD", emoji: "◎",  color: "#10B981", source: "coingecko",  cgId: "solana" },
+  { id: "xrp",  label: "XRP",     sym: "XRPUSD", emoji: "✕",  color: "#3B82F6", source: "coingecko",  cgId: "ripple" },
+  { id: "bnb",  label: "BNB",     sym: "BNBUSD", emoji: "🟡", color: "#EAB308", source: "coingecko",  cgId: "binancecoin" },
+];
+
+const FALLBACK_PRICES = { gold: 3380, btc: 100000, eth: 3500, sol: 180, xrp: 2.1, bnb: 600 };
+
+function formatPrice(id, price) {
+  if (price === null || price === undefined || isNaN(price)) return "—";
+  if (id === "gold") return price.toFixed(2);
+  if (id === "xrp") return price.toFixed(4);
+  if (id === "sol" || id === "bnb") return price.toFixed(2);
+  return price >= 1000 ? price.toLocaleString(undefined, {maximumFractionDigits: 2}) : price.toFixed(2);
+}
+
+const actionColors = { BUY: "#10B981", SELL: "#EF4444", HOLD: "#F59E0B" };
+const confidenceColors = { HIGH: "#10B981", MEDIUM: "#F59E0B", LOW: "#EF4444" };
+
+// ============================================================
+// LIVE PRICE FETCHING
+// ============================================================
+async function fetchCoinGeckoPrices() {
+  const ids = ASSETS.filter(a => a.source === "coingecko").map(a => a.cgId).join(",");
+  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("CoinGecko HTTP " + res.status);
+  const json = await res.json();
+  const out = {};
+  ASSETS.filter(a => a.source === "coingecko").forEach(a => {
+    const d = json[a.cgId];
+    if (d && typeof d.usd === "number") {
+      out[a.id] = { price: d.usd, change: d.usd_24h_change ?? 0, error: false };
+    } else {
+      out[a.id] = { error: true };
+    }
+  });
+  return out;
+}
+
+async function fetchTwelveDataPrices() {
+  const symbols = ASSETS.filter(a => a.source === "twelvedata").map(a => a.tdSymbol).join(",");
+  const url = `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbols)}&apikey=${TWELVEDATA_API_KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("TwelveData HTTP " + res.status);
+  const json = await res.json();
+  const bySymbol = json.symbol ? { [json.symbol]: json } : json;
+  const out = {};
+  ASSETS.filter(a => a.source === "twelvedata").forEach(a => {
+    const d = bySymbol[a.tdSymbol];
+    if (d && !d.code && typeof d.close !== "undefined") {
+      out[a.id] = { price: parseFloat(d.close), change: parseFloat(d.percent_change ?? 0), error: false };
+    } else {
+      out[a.id] = { error: true };
+    }
+  });
+  return out;
+}
+
+async function fetchAllPrices() {
+  const results = {};
+  try {
+    Object.assign(results, await fetchCoinGeckoPrices());
+  } catch (e) {
+    console.warn("CoinGecko fetch failed:", e.message);
+  }
+  try {
+    Object.assign(results, await fetchTwelveDataPrices());
+  } catch (e) {
+    console.warn("TwelveData fetch failed:", e.message);
+  }
+  return results;
+}
+
+// ============================================================
+// CLAUDE ANALYSIS (cached per asset, real API call)
+// ============================================================
+async function fetchClaudeAnalysis(assetSym, price, changePct, apiKey) {
+  if (!apiKey) throw new Error("NO_API_KEY");
+
+  const prompt = `You are a trading analyst for AURUM PRO, a Dubai-based gold and crypto signal platform. Analyze ${assetSym} currently trading at ${price} (24h change: ${changePct > 0 ? "+" : ""}${changePct.toFixed(2)}%).
+
+Respond ONLY with valid JSON, no markdown, no preamble, in this exact shape:
+{
+  "action": "BUY" | "SELL" | "HOLD",
+  "confidence": "HIGH" | "MEDIUM" | "LOW",
+  "confidencePct": <number 0-100>,
+  "entryLow": <number>,
+  "entryHigh": <number>,
+  "stopLoss": <number>,
+  "target1": <number>,
+  "target2": <number>,
+  "predict1d": <percent number, can be negative>,
+  "predict1w": <percent number, can be negative>,
+  "predict1m": <percent number, can be negative>,
+  "bullish": <number 0-100>,
+  "bearish": <number 0-100>,
+  "reasons": [<3-5 short strings>],
+  "risks": [<2-3 short strings>],
+  "dubai": "<1-2 sentences on Dubai/UAE trading context for this asset>",
+  "macro": "<1-2 sentences on macro outlook>"
+}
+Base entry/stop/targets realistically around the current price. Keep all string fields concise (under 100 chars each).`;
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: 1000,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(`Claude API HTTP ${res.status}: ${errText.slice(0, 200)}`);
+  }
+
+  const data = await res.json();
+  const textBlock = data.content?.find(b => b.type === "text");
+  if (!textBlock) throw new Error("No text in Claude response");
+
+  let cleaned = textBlock.text.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "");
+  return JSON.parse(cleaned);
+}
+
+async function fetchClaudeChatReply(assetSym, price, changePct, analysisData, history, userQuery, apiKey) {
+  if (!apiKey) throw new Error("NO_API_KEY");
+
+  const contextSummary = analysisData
+    ? `Current signal: ${analysisData.action} (${analysisData.confidencePct}% confidence). Entry: ${analysisData.entryLow}-${analysisData.entryHigh}. Target1: ${analysisData.target1}. Stop: ${analysisData.stopLoss}. Reasons: ${(analysisData.reasons || []).join("; ")}.`
+    : "No cached analysis available yet.";
+
+  const systemPrompt = `You are AURUM PRO's trading assistant for a Dubai-based gold/crypto platform. The user is asking about ${assetSym}, currently trading at ${price} (24h change: ${changePct > 0 ? "+" : ""}${changePct.toFixed(2)}%). ${contextSummary}
+
+Answer concisely (under 150 words), in a confident but honest trading-desk tone. This is not financial advice and you should not claim certainty about future prices. If asked about Dubai/UAE context, mention relevant local trading platforms or considerations briefly.`;
+
+  const messages = history.slice(-6).map(m => ({ role: m.role, content: m.text }));
+  messages.push({ role: "user", content: userQuery });
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: 500,
+      system: systemPrompt,
+      messages: messages
+    })
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(`Claude API HTTP ${res.status}: ${errText.slice(0, 200)}`);
+  }
+
+  const data = await res.json();
+  const textBlock = data.content?.find(b => b.type === "text");
+  return textBlock ? textBlock.text : "Sorry, I couldn't generate a response.";
+}
+
+// ============================================================
+// SIMPLE RENDER ENGINE (no React dependency — vanilla JS + DOM)
+// ============================================================
+const state = {
+  asset: "gold",
+  prices: {},        // { id: { price, change, error } }
+  analysis: {},       // { id: { data, fetchedAt, loading, error } }
+  messages: {},        // { id: [{role,text}] }
+  activeTab: "chat",
+  isChatLoading: false,
+  alerts: [],
+  lastPriceFetch: null,
+  showKeyPanel: false,
+  keyInputDraft: "",
+};
+
+function getAsset(id) { return ASSETS.find(a => a.id === id); }
+
+function getPrice(id) {
+  const p = state.prices[id];
+  return p && !p.error ? p.price : FALLBACK_PRICES[id];
+}
+function getChange(id) {
+  const p = state.prices[id];
+  return p && !p.error ? p.change : 0;
+}
+function priceIsLive(id) {
+  const p = state.prices[id];
+  return !!(p && !p.error);
+}
+
+function quickQuestionsFor() {
+  return ["Full analysis", "Price prediction", "Option strategies", "Dubai context", "Key risks"];
+}
+
+// ---------- Rule-based fallback (used when no API key is set) ----------
+function ruleBasedAnalysis(assetId, price, changePct) {
+  const isUp = changePct >= 0;
+  const magnitude = Math.abs(changePct);
+  let action, confidence, confidencePct;
+
+  if (magnitude > 3) { action = isUp ? "BUY" : "SELL"; confidence = "HIGH"; confidencePct = 75; }
+  else if (magnitude > 1) { action = isUp ? "BUY" : "SELL"; confidence = "MEDIUM"; confidencePct = 60; }
+  else { action = "HOLD"; confidence = "LOW"; confidencePct = 45; }
+
+  const a = getAsset(assetId);
+  const stopPct = assetId === "gold" ? 0.02 : 0.05;
+  const targetPct = assetId === "gold" ? 0.03 : 0.08;
+
+  return {
+    action, confidence, confidencePct,
+    entryLow: price * 0.995, entryHigh: price * 1.005,
+    stopLoss: isUp ? price * (1 - stopPct) : price * (1 + stopPct),
+    target1: isUp ? price * (1 + targetPct) : price * (1 - targetPct),
+    target2: isUp ? price * (1 + targetPct * 1.8) : price * (1 - targetPct * 1.8),
+    predict1d: changePct * 0.3, predict1w: changePct * 0.8, predict1m: changePct * 1.5,
+    bullish: isUp ? 50 + Math.min(30, magnitude * 5) : 50 - Math.min(30, magnitude * 5),
+    bearish: isUp ? 50 - Math.min(30, magnitude * 5) : 50 + Math.min(30, magnitude * 5),
+    reasons: [
+      `24h price change is ${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%`,
+      `${magnitude > 1 ? "Notable" : "Limited"} momentum based on recent move`,
+      "Rule-based estimate — add an Anthropic API key for AI-generated analysis"
+    ],
+    risks: ["Rule-based logic, not AI-generated — verify independently", "Markets can reverse quickly; use proper risk management"],
+    dubai: `${a.label} is actively traded by Dubai-based traders during GMT+4 hours. Add your Anthropic API key above for live AI-generated Dubai market context.`,
+    macro: "Add your Anthropic API key above to unlock live AI-generated macro analysis instead of this rule-based estimate.",
+    isRuleBased: true
+  };
+}
+
+// ---------- Analysis fetch + cache ----------
+async function ensureAnalysis(assetId) {
+  const existing = state.analysis[assetId];
+  const now = Date.now();
+  const apiKey = getStoredApiKey();
+
+  if (!apiKey) {
+    // No key: use rule-based fallback, refresh whenever price changes meaningfully (cheap, no API cost)
+    const price = getPrice(assetId);
+    const change = getChange(assetId);
+    state.analysis[assetId] = { data: ruleBasedAnalysis(assetId, price, change), fetchedAt: now, loading: false, error: false, ruleBased: true };
+    render();
+    return;
+  }
+
+  if (existing && !existing.error && !existing.ruleBased && (now - existing.fetchedAt) < ANALYSIS_REFRESH_MS) return;
+  if (existing && existing.loading) return;
+
+  state.analysis[assetId] = { ...(existing || {}), loading: true };
+  render();
+
+  try {
+    const a = getAsset(assetId);
+    const price = getPrice(assetId);
+    const change = getChange(assetId);
+    const data = await fetchClaudeAnalysis(a.sym, price, change, apiKey);
+    state.analysis[assetId] = { data, fetchedAt: Date.now(), loading: false, error: false, ruleBased: false };
+  } catch (e) {
+    console.warn("Claude analysis fetch failed for " + assetId + ":", e.message);
+    const price = getPrice(assetId);
+    const change = getChange(assetId);
+    state.analysis[assetId] = {
+      data: ruleBasedAnalysis(assetId, price, change),
+      fetchedAt: Date.now(), loading: false, error: true, errorMsg: e.message, ruleBased: true
+    };
+  }
+  render();
+}
+
+// (fallbackAnalysis removed — ruleBasedAnalysis now covers the no-key and error cases)
+
+// ---------- Rule-based chat reply (used when no API key is set) ----------
+function ruleBasedChatReply(assetId, price, change, query) {
+  const a = getAsset(assetId);
+  const data = (state.analysis[assetId] && state.analysis[assetId].data) || ruleBasedAnalysis(assetId, price, change);
+  const lower = query.toLowerCase();
+
+  if (lower.includes("predict") || lower.includes("forecast")) {
+    return `📈 ${a.sym} FORECAST (rule-based, no AI key set)\n\n1-Day: ${data.predict1d >= 0 ? "+" : ""}${data.predict1d.toFixed(1)}%\n1-Week: ${data.predict1w >= 0 ? "+" : ""}${data.predict1w.toFixed(1)}%\n1-Month: ${data.predict1m >= 0 ? "+" : ""}${data.predict1m.toFixed(1)}%\n\nThis is a simple estimate based on recent price momentum, not AI analysis. Add your Anthropic API key above (gear icon) for real AI-generated forecasts.`;
+  }
+  if (lower.includes("dubai") || lower.includes("uae")) {
+    return `🏛️ ${data.dubai}`;
+  }
+  return `📊 ${a.sym} — ${formatPrice(assetId, price)} (${change >= 0 ? "▲" : "▼"} ${Math.abs(change).toFixed(2)}%)\n\nSignal: ${data.action} (rule-based, ${data.confidencePct}% confidence)\nEntry: ${formatPrice(assetId,data.entryLow)}–${formatPrice(assetId,data.entryHigh)}\nStop Loss: ${formatPrice(assetId,data.stopLoss)}\n\nThis is a basic rule-based response. For real AI-powered chat and analysis, add your Anthropic API key using the key icon above — it's free to get a key, and you control your own usage/spend.`;
+}
+
+// ---------- Chat ----------
+async function sendMessage(customQuery) {
+  const inputEl = document.getElementById("chatInput");
+  const query = (customQuery !== undefined ? customQuery : (inputEl ? inputEl.value : "")).trim();
+  if (!query || state.isChatLoading) return;
+
+  if (inputEl) inputEl.value = "";
+  const assetId = state.asset;
+  if (!state.messages[assetId]) state.messages[assetId] = [];
+  state.messages[assetId].push({ role: "user", text: query });
+
+  const apiKey = getStoredApiKey();
+  const price = getPrice(assetId);
+  const change = getChange(assetId);
+
+  if (!apiKey) {
+    // No key: instant rule-based reply, no network call, no cost
+    state.messages[assetId].push({ role: "assistant", text: ruleBasedChatReply(assetId, price, change, query) });
+    render();
+    return;
+  }
+
+  state.isChatLoading = true;
+  render();
+
+  try {
+    const a = getAsset(assetId);
+    const analysisEntry = state.analysis[assetId];
+    const reply = await fetchClaudeChatReply(a.sym, price, change, analysisEntry?.data, state.messages[assetId], query, apiKey);
+    state.messages[assetId].push({ role: "assistant", text: reply });
+  } catch (e) {
+    console.warn("Chat reply failed:", e.message);
+    const msg = e.message === "NO_API_KEY"
+      ? "Add your Anthropic API key (key icon above) to enable AI chat."
+      : "⚠️ Couldn't reach Claude right now (" + e.message.slice(0, 100) + "). Please try again in a moment.";
+    state.messages[assetId].push({ role: "assistant", text: msg });
+  }
+  state.isChatLoading = false;
+  render();
+}
+
+// ---------- Alerts ----------
+function checkAlerts() {
+  const assetId = state.asset;
+  const analysisEntry = state.analysis[assetId];
+  if (!analysisEntry || !analysisEntry.data) return;
+  const price = getPrice(assetId);
+  const data = analysisEntry.data;
+  const a = getAsset(assetId);
+
+  if (!checkAlerts._flagged) checkAlerts._flagged = {};
+  const flagKeySL = assetId + "_sl";
+  const flagKeyT1 = assetId + "_t1";
+
+  if (price <= data.stopLoss && !checkAlerts._flagged[flagKeySL]) {
+    checkAlerts._flagged[flagKeySL] = true;
+    pushAlert(`⚠️ ${a.sym} near Stop Loss ${data.stopLoss}!`);
+  }
+  if (price >= data.target1 && !checkAlerts._flagged[flagKeyT1]) {
+    checkAlerts._flagged[flagKeyT1] = true;
+    pushAlert(`🎯 ${a.sym} hit Target 1: ${data.target1}!`);
+  }
+}
+function pushAlert(text) {
+  state.alerts = [text, ...state.alerts].slice(0, 3);
+  render();
+  setTimeout(() => { state.alerts = state.alerts.slice(0, -1); render(); }, 5000);
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function esc(str) {
+  const div = document.createElement("div");
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
+function render() {
+  const root = document.getElementById("root");
+  const a = getAsset(state.asset);
+  const price = getPrice(state.asset);
+  const change = getChange(state.asset);
+  const live = priceIsLive(state.asset);
+  const analysisEntry = state.analysis[state.asset];
+  const data = analysisEntry && analysisEntry.data ? analysisEntry.data : ruleBasedAnalysis(state.asset, price, change);
+  const isAnalysisLoading = analysisEntry && analysisEntry.loading;
+  const msgs = state.messages[state.asset] || [];
+
+  const html = `
+    <style>
+      @keyframes pulse2 { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+    <div style="display:flex;flex-direction:column;height:100vh;background:#07090f;color:#e2e8f0;font-family:system-ui,sans-serif;">
+
+      ${state.alerts.length > 0 ? `
+      <div style="position:fixed;top:0;left:0;right:0;z-index:100;padding:8px 12px;pointer-events:none;">
+        ${state.alerts.map(al => `<div style="background:#EF4444;border-radius:10px;padding:8px 14px;margin-bottom:5px;font-size:12px;font-weight:600;text-align:center;animation:slideUp 0.3s ease;">${esc(al)}</div>`).join("")}
+      </div>` : ""}
+
+      <div style="padding:12px 14px;border-bottom:1px solid rgba(245,158,11,0.1);background:rgba(7,9,15,0.98);display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#92400e);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;">AU</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#f59e0b;">AURUM PRO</div>
+            <div style="font-size:9px;color:#334155;">DUBAI · GOLD & CRYPTO · LIVE DATA</div>
+          </div>
         </div>
-    </header>
-
-    <div class="container">
-        <div class="hero">
-            <h1>🤖 Multi-Asset Trading Dashboard</h1>
-            <p>Real-time predictions for Crypto, Forex, Gold, Stocks & Commodities</p>
-            <p style="font-size: 0.9rem; color: var(--text-light);">Last updated: <span id="timestamp">Loading...</span></p>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button id="keyToggleBtn" title="${hasApiKey() ? 'AI key active' : 'Add your Anthropic API key'}" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px;line-height:1;opacity:${hasApiKey() ? '1' : '0.5'};">🔑</button>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <div style="width:6px;height:6px;border-radius:50%;background:${live ? '#10b981' : '#EF4444'};animation:pulse2 2s infinite;"></div>
+            <span style="font-size:9px;color:${live ? '#10b981' : '#EF4444'};">${live ? 'LIVE' : 'OFFLINE'}</span>
+          </div>
         </div>
+      </div>
 
-        <!-- Asset Selector -->
-        <div class="asset-selector-section">
-            <div class="asset-selector-title">
-                <span>🔍 Select Asset & Search</span>
-            </div>
-
-            <div class="search-input-group">
-                <input type="text" class="search-input" id="searchInput" placeholder="Search ticker (BTC, XAU/USD, EUR/USD, AAPL...)">
-                <button class="btn" onclick="searchAsset()">Search</button>
-            </div>
-
-            <div class="asset-categories">
-                <!-- Cryptocurrencies -->
-                <div class="category-group">
-                    <div class="category-name">💻 Top Cryptocurrencies</div>
-                    <div class="asset-buttons">
-                        <button class="asset-btn active" onclick="selectAsset('BTC-USD', '₿')">₿ Bitcoin</button>
-                        <button class="asset-btn" onclick="selectAsset('ETH-USD', 'Ξ')">Ξ Ethereum</button>
-                        <button class="asset-btn" onclick="selectAsset('XRP-USD', 'XRP')">XRP</button>
-                        <button class="asset-btn" onclick="selectAsset('ADA-USD', 'ADA')">ADA</button>
-                        <button class="asset-btn" onclick="selectAsset('SOL-USD', 'SOL')">SOL</button>
-                    </div>
-                </div>
-
-                <!-- Forex Pairs -->
-                <div class="category-group">
-                    <div class="category-name">💱 Forex Pairs</div>
-                    <div class="asset-buttons">
-                        <button class="asset-btn" onclick="selectAsset('EURUSD=X', 'EUR/USD')">EUR/USD</button>
-                        <button class="asset-btn" onclick="selectAsset('GBPUSD=X', 'GBP/USD')">GBP/USD</button>
-                        <button class="asset-btn" onclick="selectAsset('USDJPY=X', 'USD/JPY')">USD/JPY</button>
-                        <button class="asset-btn" onclick="selectAsset('AUDUSD=X', 'AUD/USD')">AUD/USD</button>
-                        <button class="asset-btn" onclick="selectAsset('USDCAD=X', 'USD/CAD')">USD/CAD</button>
-                    </div>
-                </div>
-
-                <!-- Commodities & Gold -->
-                <div class="category-group">
-                    <div class="category-name">⚜️ Commodities</div>
-                    <div class="asset-buttons">
-                        <button class="asset-btn" onclick="selectAsset('GC=F', 'Gold')">🥇 Gold</button>
-                        <button class="asset-btn" onclick="selectAsset('SI=F', 'Silver')">🔗 Silver</button>
-                        <button class="asset-btn" onclick="selectAsset('CL=F', 'Oil')">🛢️ Oil</button>
-                        <button class="asset-btn" onclick="selectAsset('NG=F', 'Gas')">⛽ Gas</button>
-                        <button class="asset-btn" onclick="selectAsset('ZW=F', 'Wheat')">🌾 Wheat</button>
-                    </div>
-                </div>
-
-                <!-- Tech Stocks -->
-                <div class="category-group">
-                    <div class="category-name">📱 Tech Stocks</div>
-                    <div class="asset-buttons">
-                        <button class="asset-btn" onclick="selectAsset('NVDA', 'NVDA')">NVDA</button>
-                        <button class="asset-btn" onclick="selectAsset('AAPL', 'AAPL')">AAPL</button>
-                        <button class="asset-btn" onclick="selectAsset('MSFT', 'MSFT')">MSFT</button>
-                        <button class="asset-btn" onclick="selectAsset('GOOGL', 'GOOGL')">GOOGL</button>
-                        <button class="asset-btn" onclick="selectAsset('TSLA', 'TSLA')">TSLA</button>
-                    </div>
-                </div>
-            </div>
+      ${state.showKeyPanel ? `
+      <div style="padding:12px 14px;background:rgba(13,20,33,0.98);border-bottom:1px solid rgba(245,158,11,0.15);">
+        <div style="font-size:11px;color:#94A3B8;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+          <span>🔑</span><span>Anthropic API key <span style="color:#475569;">(optional — your key, your usage)</span></span>
         </div>
-
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('markets')">Market Data</button>
-            <button class="tab" onclick="switchTab('watchlist')">Analysis</button>
+        <div style="display:flex;gap:8px;">
+          <input id="apiKeyInput" type="password" placeholder="sk-ant-api03-..." value="${esc(getStoredApiKey())}" style="flex:1;background:rgba(7,9,15,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 10px;color:#e2e8f0;font-size:12px;outline:none;" />
+          <button id="saveKeyBtn" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:8px;padding:8px 14px;color:#000;font-size:11px;font-weight:700;cursor:pointer;">SAVE</button>
         </div>
+        ${hasApiKey() ? `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+            <span style="font-size:10px;color:#10B981;">✅ Key active — full AI analysis enabled</span>
+            <button id="clearKeyBtn" style="background:none;border:none;color:#F87171;font-size:10px;cursor:pointer;text-decoration:underline;">Remove key</button>
+          </div>` : `
+          <div style="font-size:10px;color:#475569;margin-top:8px;">Without a key, AURUM PRO shows rule-based estimates instead of AI analysis. Get a key at <span style="color:#f59e0b;">console.anthropic.com</span> — set a spending cap there for safety. Your key is stored only in this browser and sent only to Anthropic.</div>`}
+      </div>` : ""}
 
-        <!-- Markets Tab -->
-        <div id="markets" class="tab-content active">
-            <div class="dashboard">
-                <!-- Price Card -->
-                <div class="card">
-                    <div class="card-title">
-                        <span class="card-icon" id="assetIcon">📊</span>
-                        <span id="assetName">Bitcoin (BTC)</span>
-                    </div>
-                    <div class="card-subtitle" id="assetCategory">Cryptocurrency</div>
-                    <div class="price-display" id="currentPrice">$0.00</div>
-                    <div class="price-change" id="priceChange">+0.00%</div>
-                    <div class="stats-grid" id="priceStats">
-                        <div class="stat-box">
-                            <div class="stat-label">24h High</div>
-                            <div class="stat-value" id="high24h">-</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">24h Low</div>
-                            <div class="stat-value" id="low24h">-</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Volume</div>
-                            <div class="stat-value" id="volume">-</div>
-                        </div>
-                    </div>
-                </div>
+      <div style="display:flex;gap:6px;padding:8px 12px;overflow-x:auto;background:rgba(10,14,22,0.95);border-bottom:1px solid rgba(255,255,255,0.04);">
+        ${ASSETS.map(asset => {
+          const isActive = state.asset === asset.id;
+          const p = getPrice(asset.id);
+          const c = getChange(asset.id);
+          return `
+          <button data-asset="${asset.id}" class="asset-btn" style="display:flex;flex-direction:column;align-items:flex-start;padding:6px 12px;border-radius:10px;background:${isActive ? asset.color + '20' : 'rgba(255,255,255,0.03)'};border:${isActive ? '1px solid ' + asset.color + '40' : '1px solid transparent'};cursor:pointer;min-width:85px;flex-shrink:0;">
+            <div style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:${isActive ? asset.color : '#6b7280'};"><span>${asset.emoji}</span><span>${asset.label}</span></div>
+            <div style="font-size:12px;font-weight:600;margin-top:2px;color:#e2e8f0;">${formatPrice(asset.id, p)}</div>
+            <div style="font-size:9px;color:${c >= 0 ? '#10B981' : '#EF4444'};">${c >= 0 ? '▲' : '▼'} ${Math.abs(c).toFixed(2)}%</div>
+          </button>`;
+        }).join("")}
+      </div>
 
-                <!-- Trading Signal Card -->
-                <div class="card">
-                    <div class="card-title">
-                        <span class="card-icon">🎯</span>
-                        <span>Trading Signal</span>
-                    </div>
-                    <div id="trading-signal" class="signal hold">LOADING...</div>
-                    <div class="stats-grid" id="trading-stats">
-                        <div class="stat-box">
-                            <div class="stat-value">-</div>
-                            <div class="stat-label">Confidence</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-value">-</div>
-                            <div class="stat-label">Risk Level</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-value">-</div>
-                            <div class="stat-label">Position Size</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Technical Analysis Card -->
-                <div class="card">
-                    <div class="card-title">
-                        <span class="card-icon">📈</span>
-                        <span>Technical Analysis</span>
-                    </div>
-                    <div id="technical-metrics">
-                        <div class="metric">
-                            <span class="metric-label">RSI (14)</span>
-                            <span class="metric-value" id="rsi">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">MACD</span>
-                            <span class="metric-value" id="macd">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Trend</span>
-                            <span class="metric-value" id="trend">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Volatility</span>
-                            <span class="metric-value" id="volatility">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Market Sentiment Card -->
-                <div class="card">
-                    <div class="card-title">
-                        <span class="card-icon">🌍</span>
-                        <span>Market Sentiment</span>
-                    </div>
-                    <div id="sentiment-metrics">
-                        <div class="metric">
-                            <span class="metric-label">Overall Sentiment</span>
-                            <span class="metric-value" id="sentiment">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Sentiment Score</span>
-                            <span class="metric-value" id="sentimentScore">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Market Risk</span>
-                            <span class="metric-value" id="marketRisk">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Implied Volatility</span>
-                            <span class="metric-value" id="impliedVol">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recommendations Card -->
-                <div class="card full-width">
-                    <div class="card-title">
-                        <span class="card-icon">💡</span>
-                        <span>AI Recommendations</span>
-                    </div>
-                    <div id="recommendations" class="recommendations">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <div style="padding:10px 14px;background:rgba(9,13,21,0.96);border-bottom:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:10px;color:#475569;">${esc(a.sym)} · ${live ? 'Live' : 'Cached'}</div>
+          <div style="font-size:24px;font-weight:700;">${formatPrice(state.asset, price)}<span style="font-size:11px;color:#475569;margin-left:4px;">${a.id === 'gold' ? 'pts' : 'USD'}</span></div>
+          ${a.id !== 'gold' ? `<div style="font-size:10px;color:#334155;">AED ${(price * USD_AED).toLocaleString(undefined,{maximumFractionDigits:0})}</div>` : ""}
         </div>
-
-        <!-- Analysis Tab -->
-        <div id="watchlist" class="tab-content">
-            <div class="dashboard">
-                <!-- Asset Info -->
-                <div class="card full-width">
-                    <div class="card-title">
-                        <span class="card-icon">ℹ️</span>
-                        <span>Asset Information</span>
-                    </div>
-                    <div id="assetInfo">
-                        <div class="metric">
-                            <span class="metric-label">Market Cap</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">52-Week High</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">52-Week Low</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">PE Ratio</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Key Events -->
-                <div class="card full-width">
-                    <div class="card-title">
-                        <span class="card-icon">📰</span>
-                        <span>Key Market Events</span>
-                    </div>
-                    <div id="keyEvents">
-                        <div class="recommendation-item">
-                            <strong>Major Economic Data Release Expected</strong>
-                            <div style="font-size: 0.9rem; margin-top: 0.3rem;">Impact: High | Keep monitoring for volatility</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Risk Assessment -->
-                <div class="card full-width">
-                    <div class="card-title">
-                        <span class="card-icon">⚠️</span>
-                        <span>Risk Assessment</span>
-                    </div>
-                    <div id="riskAssessment">
-                        <div class="metric">
-                            <span class="metric-label">Risk Level</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Stop Loss Recommendation</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Take Profit Recommendation</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Risk/Reward Ratio</span>
-                            <span class="metric-value">-</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div style="text-align:right;">
+          <div style="font-size:16px;font-weight:700;color:${change >= 0 ? '#10B981' : '#EF4444'};">${change >= 0 ? '+' : ''}${change.toFixed(2)}%</div>
+          <div style="display:inline-flex;align-items:center;gap:5px;background:${(actionColors[data.action]||'#F59E0B')}15;padding:4px 12px;border-radius:20px;margin-top:4px;">
+            <span style="font-size:11px;font-weight:700;color:${actionColors[data.action]||'#F59E0B'};">${isAnalysisLoading ? 'ANALYZING…' : esc(data.action)}</span>
+            <span style="font-size:9px;color:${confidenceColors[data.confidence]||'#F59E0B'};">${esc(data.confidence)} ${data.confidencePct}%</span>
+            ${data.isRuleBased || (analysisEntry && analysisEntry.ruleBased) ? `<span style="font-size:8px;color:#475569;">· RULE-BASED</span>` : `<span style="font-size:8px;color:#10B981;">· AI</span>`}
+          </div>
+          <div style="font-size:9px;color:#334155;margin-top:3px;">SL ${formatPrice(state.asset, data.stopLoss)} · T1 ${formatPrice(state.asset, data.target1)}</div>
         </div>
+      </div>
 
-        <!-- Share Buttons -->
-        <div class="share-buttons">
-            <button class="btn" onclick="shareLink()">📤 Share Dashboard</button>
-            <button class="btn btn-secondary" onclick="downloadReport()">📥 Download Report</button>
-            <button class="btn btn-secondary" onclick="printDashboard()">🖨️ Print</button>
+      <div style="display:flex;background:rgba(8,12,20,0.98);border-bottom:1px solid rgba(255,255,255,0.04);">
+        ${[["chat","💬 CHAT"],["predict","📈 PREDICT"],["options","⚡ OPTIONS"],["info","ℹ️ INFO"]].map(([id,label]) => `
+          <button data-tab="${id}" class="tab-btn" style="flex:1;padding:10px 0;background:none;border:none;border-bottom:${state.activeTab===id?'2px solid #f59e0b':'2px solid transparent'};color:${state.activeTab===id?'#f59e0b':'#4b5563'};font-size:10px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">${label}</button>
+        `).join("")}
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:14px;" id="mainContent">
+        ${renderTabContent(a, price, change, data, isAnalysisLoading, msgs)}
+      </div>
+
+      ${state.activeTab === "chat" ? `
+      <div style="padding:10px 12px;background:rgba(7,9,15,0.98);border-top:1px solid rgba(245,158,11,0.08);">
+        <div style="display:flex;gap:8px;align-items:flex-end;background:rgba(13,20,33,0.95);border-radius:12px;padding:8px 12px;border:1px solid ${state.isChatLoading ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.06)'};">
+          <textarea id="chatInput" rows="1" placeholder="Ask about ${esc(a.sym)}..." style="flex:1;background:transparent;border:none;color:#e2e8f0;font-size:13px;max-height:80px;font-family:system-ui,sans-serif;outline:none;resize:none;"></textarea>
+          <button id="sendBtn" style="width:32px;height:32px;border-radius:8px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="#000" stroke-width="2.5"/></svg>
+          </button>
         </div>
+        <div style="text-align:center;margin-top:6px;font-size:8px;color:#1e293b;">NOT FINANCIAL ADVICE · DUBAI GMT+4 · LIVE AI ANALYSIS</div>
+      </div>` : ""}
     </div>
+  `;
 
-    <footer>
-        <p>💰 Multi-Asset Trading Dashboard | Real-time Market Data & AI Predictions</p>
-        <p style="font-size: 0.9rem; margin-top: 1rem;">© 2026 AirisDubai Trading Systems. All rights reserved.</p>
-        <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-light);">Disclaimer: This is a demonstration dashboard. Not financial advice.</p>
-    </footer>
+  root.innerHTML = html;
+  attachHandlers();
+  scrollChatToBottom();
+}
 
-    <script>
-        // ============================================================
-        // CONFIG
-        // ============================================================
-        const TWELVEDATA_API_KEY = '53ca0f596b344545b65f4384aa2fc6ef';
-        const REFRESH_INTERVAL_MS = 120000; // 2 minutes — keeps us well inside TwelveData's free 800/day, 8/min limits
+function renderTabContent(a, price, change, data, isAnalysisLoading, msgs) {
+  if (state.activeTab === "chat") {
+    if (msgs.length === 0) {
+      return `
+        <div style="text-align:center;padding:30px 20px;">
+          <div style="font-size:48px;margin-bottom:12px;">${a.emoji}</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:16px;">Ask me about ${esc(a.sym)}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+            ${quickQuestionsFor().map(q => `<button class="quick-q" data-q="${esc(q)}" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.15);border-radius:20px;padding:6px 14px;color:#94a3b8;font-size:11px;cursor:pointer;">${esc(q)}</button>`).join("")}
+          </div>
+          ${isAnalysisLoading ? `<div style="margin-top:16px;font-size:10px;color:#475569;">🤖 Claude is generating fresh analysis for ${esc(a.sym)}...</div>` : ""}
+          ${!hasApiKey() ? `<div style="margin-top:16px;font-size:10px;color:#475569;">💡 Add your Anthropic API key (🔑 icon above) for real AI-powered chat and analysis</div>` : ""}
+        </div>`;
+    }
+    return msgs.map(m => `
+      <div style="display:flex;justify-content:${m.role==='user'?'flex-end':'flex-start'};margin-bottom:12px;">
+        ${m.role==='assistant' ? `<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#b45309);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#000;margin-right:8px;flex-shrink:0;">AU</div>` : ""}
+        <div style="max-width:85%;background:${m.role==='user'?'rgba(245,158,11,0.12)':'rgba(13,20,33,0.95)'};border:${m.role==='user'?'1px solid rgba(245,158,11,0.2)':'1px solid rgba(255,255,255,0.06)'};border-radius:${m.role==='user'?'16px 4px 16px 16px':'4px 16px 16px 16px'};padding:10px 14px;">
+          <pre style="font-size:12px;line-height:1.6;color:#CBD5E1;white-space:pre-wrap;font-family:system-ui,sans-serif;margin:0;">${esc(m.text)}</pre>
+        </div>
+      </div>
+    `).join("") + (state.isChatLoading ? `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#b45309);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#000;">AU</div>
+        <div style="background:rgba(13,20,33,0.95);border:1px solid rgba(255,255,255,0.06);border-radius:4px 16px 16px 16px;padding:10px 16px;">
+          <div style="display:flex;gap:4px;">
+            <div style="width:6px;height:6px;border-radius:50%;background:#f59e0b;animation:pulse2 1s infinite;"></div>
+            <div style="width:6px;height:6px;border-radius:50%;background:#f59e0b;animation:pulse2 1s 0.2s infinite;"></div>
+            <div style="width:6px;height:6px;border-radius:50%;background:#f59e0b;animation:pulse2 1s 0.4s infinite;"></div>
+          </div>
+        </div>
+      </div>` : "");
+  }
 
-        // Static metadata (icon, display name, category) — prices are NEVER hardcoded below, only fetched live.
-        const ASSET_META = {
-            'BTC-USD':  { name: 'Bitcoin',        icon: '₿',  category: 'Cryptocurrency', source: 'coingecko', coingeckoId: 'bitcoin' },
-            'ETH-USD':  { name: 'Ethereum',       icon: 'Ξ',  category: 'Cryptocurrency', source: 'coingecko', coingeckoId: 'ethereum' },
-            'XRP-USD':  { name: 'Ripple (XRP)',   icon: '✕',  category: 'Cryptocurrency', source: 'coingecko', coingeckoId: 'ripple' },
-            'ADA-USD':  { name: 'Cardano (ADA)',  icon: '◈',  category: 'Cryptocurrency', source: 'coingecko', coingeckoId: 'cardano' },
-            'SOL-USD':  { name: 'Solana (SOL)',   icon: '◎',  category: 'Cryptocurrency', source: 'coingecko', coingeckoId: 'solana' },
+  if (state.activeTab === "predict") {
+    return `
+      <div style="font-size:10px;color:#475569;margin-bottom:12px;text-transform:uppercase;">Price Forecast — ${esc(a.sym)} ${isAnalysisLoading ? '(refreshing…)' : ''}</div>
+      ${[["1-Day", data.predict1d], ["1-Week", data.predict1w], ["1-Month", data.predict1m]].map(([period, pct]) => {
+        const isUp = pct >= 0;
+        const targetPrice = price * (1 + pct / 100);
+        return `
+        <div style="background:rgba(13,20,33,0.9);border:1px solid ${isUp ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'};border-radius:12px;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:9px;color:#475569;margin-bottom:4px;">${period} FORECAST</div>
+            <div style="font-size:20px;font-weight:700;color:${isUp ? '#10B981' : '#EF4444'};">${isUp ? '+' : ''}${pct.toFixed(1)}%</div>
+            <div style="font-size:10px;color:#334155;margin-top:2px;">→ ${formatPrice(a.id, targetPrice)}</div>
+          </div>
+          <div style="font-size:32px;">${isUp ? '📈' : '📉'}</div>
+        </div>`;
+      }).join("")}
 
-            'EURUSD=X': { name: 'EUR/USD', icon: '💶', category: 'Forex Pair', source: 'twelvedata', tdSymbol: 'EUR/USD' },
-            'GBPUSD=X': { name: 'GBP/USD', icon: '💷', category: 'Forex Pair', source: 'twelvedata', tdSymbol: 'GBP/USD' },
-            'USDJPY=X': { name: 'USD/JPY', icon: '¥',  category: 'Forex Pair', source: 'twelvedata', tdSymbol: 'USD/JPY' },
-            'AUDUSD=X': { name: 'AUD/USD', icon: '🦘', category: 'Forex Pair', source: 'twelvedata', tdSymbol: 'AUD/USD' },
-            'USDCAD=X': { name: 'USD/CAD', icon: '🍁', category: 'Forex Pair', source: 'twelvedata', tdSymbol: 'USD/CAD' },
+      <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:14px;margin-bottom:10px;">
+        <div style="font-size:9px;color:#475569;margin-bottom:10px;text-transform:uppercase;">Market Sentiment</div>
+        <div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:9px;">Bullish</span><span style="font-size:9px;color:#10B981;">${data.bullish}%</span></div><div style="height:4px;background:rgba(255,255,255,0.05);border-radius:2px;"><div style="height:4px;width:${data.bullish}%;background:#10B981;border-radius:2px;"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:9px;">Bearish</span><span style="font-size:9px;color:#EF4444;">${data.bearish}%</span></div><div style="height:4px;background:rgba(255,255,255,0.05);border-radius:2px;"><div style="height:4px;width:${data.bearish}%;background:#EF4444;border-radius:2px;"></div></div></div>
+      </div>
 
-            'GC=F': { name: 'Gold (XAU/USD)',   icon: '🥇', category: 'Commodity', source: 'twelvedata', tdSymbol: 'XAU/USD' },
-            'SI=F': { name: 'Silver (XAG/USD)', icon: '🔗', category: 'Commodity', source: 'twelvedata', tdSymbol: 'XAG/USD' },
-            'CL=F': { name: 'Crude Oil (WTI)',  icon: '🛢️', category: 'Commodity', source: 'twelvedata', tdSymbol: 'WTI/USD' },
-            'NG=F': { name: 'Natural Gas',      icon: '⛽', category: 'Commodity', source: 'twelvedata', tdSymbol: 'NATGAS/USD' },
-            'ZW=F': { name: 'Wheat',            icon: '🌾', category: 'Commodity', source: 'twelvedata', tdSymbol: 'WHEAT/USD' },
+      <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:14px;">
+        <div style="font-size:9px;color:#475569;margin-bottom:8px;text-transform:uppercase;">AI Analysis Reasons</div>
+        ${(data.reasons||[]).slice(0,5).map((r,i) => `<div style="display:flex;gap:8px;margin-bottom:8px;"><span style="font-size:10px;color:#f59e0b;">${i+1}.</span><span style="font-size:11px;color:#94A3B8;line-height:1.5;">${esc(r)}</span></div>`).join("")}
+      </div>
+    `;
+  }
 
-            'NVDA':  { name: 'NVIDIA',   icon: '💻', category: 'Tech Stock', source: 'twelvedata', tdSymbol: 'NVDA' },
-            'AAPL':  { name: 'Apple',    icon: '🍎', category: 'Tech Stock', source: 'twelvedata', tdSymbol: 'AAPL' },
-            'MSFT':  { name: 'Microsoft', icon: '🪟', category: 'Tech Stock', source: 'twelvedata', tdSymbol: 'MSFT' },
-            'GOOGL': { name: 'Alphabet', icon: '🔍', category: 'Tech Stock', source: 'twelvedata', tdSymbol: 'GOOGL' },
-            'TSLA':  { name: 'Tesla',   icon: '⚡', category: 'Tech Stock', source: 'twelvedata', tdSymbol: 'TSLA' }
-        };
+  if (state.activeTab === "options") {
+    return `
+      <div style="font-size:10px;color:#475569;margin-bottom:8px;text-transform:uppercase;">Trade Setup — ${esc(a.sym)}</div>
+      <div style="background:rgba(245,158,11,0.08);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:10px;color:#94A3B8;">
+        Signal: <span style="color:${actionColors[data.action]};font-weight:700;">${esc(data.action)}</span> · Entry: ${formatPrice(a.id,data.entryLow)}–${formatPrice(a.id,data.entryHigh)} · SL: ${formatPrice(a.id,data.stopLoss)} · T1: ${formatPrice(a.id,data.target1)}
+      </div>
+      <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:16px;margin-bottom:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><div style="font-size:9px;color:#475569;">Target 1</div><div style="font-size:13px;">${formatPrice(a.id,data.target1)}</div></div>
+          <div><div style="font-size:9px;color:#475569;">Target 2</div><div style="font-size:13px;">${formatPrice(a.id,data.target2)}</div></div>
+          <div><div style="font-size:9px;color:#475569;">Stop Loss</div><div style="font-size:13px;color:#F87171;">${formatPrice(a.id,data.stopLoss)}</div></div>
+          <div><div style="font-size:9px;color:#475569;">Risk/Reward</div><div style="font-size:13px;color:#10B981;">~1:${(((data.target1-price)/(price-data.stopLoss))||0).toFixed(1)}</div></div>
+        </div>
+      </div>
+      <div style="background:rgba(239,68,68,0.08);border-radius:10px;padding:12px;margin-top:4px;">
+        <div style="font-size:9px;font-weight:700;color:#F87171;margin-bottom:6px;">KEY RISKS</div>
+        ${(data.risks||[]).map(r => `<div style="font-size:10px;color:#94A3B8;margin-bottom:4px;">• ${esc(r)}</div>`).join("")}
+      </div>
+    `;
+  }
 
-        // Live data store, populated by fetchAllPrices(). null = not yet loaded / failed.
-        let liveData = {};
-        let currentAsset = 'BTC-USD';
-        let lastFetchTime = null;
-        let fetchInFlight = false;
+  if (state.activeTab === "info") {
+    return `
+      <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:16px;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;color:#f59e0b;margin-bottom:10px;">📊 Trade Setup</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><div style="font-size:9px;color:#475569;">Action</div><div style="font-size:14px;font-weight:700;color:${actionColors[data.action]};">${esc(data.action)}</div></div>
+          <div><div style="font-size:9px;color:#475569;">Confidence</div><div style="font-size:14px;font-weight:700;color:${confidenceColors[data.confidence]};">${data.confidencePct}%</div></div>
+          <div><div style="font-size:9px;color:#475569;">Entry Zone</div><div style="font-size:13px;">${formatPrice(a.id,data.entryLow)} – ${formatPrice(a.id,data.entryHigh)}</div></div>
+          <div><div style="font-size:9px;color:#475569;">Target 1 / 2</div><div style="font-size:13px;">${formatPrice(a.id,data.target1)} / ${formatPrice(a.id,data.target2)}</div></div>
+          <div><div style="font-size:9px;color:#475569;">Stop Loss</div><div style="font-size:13px;color:#F87171;">${formatPrice(a.id,data.stopLoss)}</div></div>
+          <div><div style="font-size:9px;color:#475569;">Current Price</div><div style="font-size:13px;color:#10B981;">${formatPrice(a.id,price)}</div></div>
+        </div>
+      </div>
+      <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:16px;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;color:#f59e0b;margin-bottom:8px;">🏛️ Dubai Context</div>
+        <div style="font-size:11px;color:#94A3B8;line-height:1.6;">${esc(data.dubai)}</div>
+      </div>
+      <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:16px;">
+        <div style="font-size:12px;font-weight:700;color:#f59e0b;margin-bottom:8px;">📈 Macro Outlook</div>
+        <div style="font-size:11px;color:#94A3B8;line-height:1.6;">${esc(data.macro)}</div>
+      </div>
+    `;
+  }
+  return "";
+}
 
-        // ============================================================
-        // FETCHING
-        // ============================================================
-        async function fetchCoinGeckoPrices() {
-            const ids = Object.values(ASSET_META)
-                .filter(a => a.source === 'coingecko')
-                .map(a => a.coingeckoId)
-                .join(',');
-            const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`;
+function scrollChatToBottom() {
+  const el = document.getElementById("mainContent");
+  if (el && state.activeTab === "chat") el.scrollTop = el.scrollHeight;
+}
 
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`CoinGecko HTTP ${res.status}`);
-            const json = await res.json();
+function attachHandlers() {
+  document.querySelectorAll(".asset-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.asset = btn.getAttribute("data-asset");
+      render();
+      ensureAnalysis(state.asset);
+    });
+  });
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.activeTab = btn.getAttribute("data-tab");
+      render();
+    });
+  });
+  document.querySelectorAll(".quick-q").forEach(btn => {
+    btn.addEventListener("click", () => sendMessage(btn.getAttribute("data-q")));
+  });
+  const sendBtn = document.getElementById("sendBtn");
+  if (sendBtn) sendBtn.addEventListener("click", () => sendMessage());
+  const inputEl = document.getElementById("chatInput");
+  if (inputEl) {
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    });
+  }
 
-            for (const [ticker, meta] of Object.entries(ASSET_META)) {
-                if (meta.source !== 'coingecko') continue;
-                const d = json[meta.coingeckoId];
-                if (!d || typeof d.usd !== 'number') {
-                    liveData[ticker] = { ...liveData[ticker], error: true };
-                    continue;
-                }
-                liveData[ticker] = {
-                    price: d.usd,
-                    change: d.usd_24h_change ?? 0,
-                    volume: d.usd_24h_vol ?? null,
-                    marketCap: d.usd_market_cap ?? null,
-                    high24h: null, // CoinGecko simple/price doesn't include this; left blank rather than faked
-                    low24h: null,
-                    error: false
-                };
-            }
-        }
+  const keyToggleBtn = document.getElementById("keyToggleBtn");
+  if (keyToggleBtn) {
+    keyToggleBtn.addEventListener("click", () => {
+      state.showKeyPanel = !state.showKeyPanel;
+      render();
+    });
+  }
+  const saveKeyBtn = document.getElementById("saveKeyBtn");
+  if (saveKeyBtn) {
+    saveKeyBtn.addEventListener("click", () => {
+      const keyInput = document.getElementById("apiKeyInput");
+      const newKey = keyInput ? keyInput.value.trim() : "";
+      setStoredApiKey(newKey);
+      state.showKeyPanel = false;
+      // Force re-fetch of analysis for current asset with the new key
+      state.analysis[state.asset] = null;
+      render();
+      ensureAnalysis(state.asset);
+    });
+  }
+  const clearKeyBtn = document.getElementById("clearKeyBtn");
+  if (clearKeyBtn) {
+    clearKeyBtn.addEventListener("click", () => {
+      setStoredApiKey("");
+      state.analysis[state.asset] = null;
+      render();
+      ensureAnalysis(state.asset);
+    });
+  }
+}
 
-        async function fetchTwelveDataPrices() {
-            const symbols = Object.values(ASSET_META)
-                .filter(a => a.source === 'twelvedata')
-                .map(a => a.tdSymbol);
-            const symbolParam = symbols.join(',');
-            const url = `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbolParam)}&apikey=${TWELVEDATA_API_KEY}`;
+// ============================================================
+// INIT
+// ============================================================
+async function initPrices() {
+  const fetched = await fetchAllPrices();
+  state.prices = { ...state.prices, ...fetched };
+  state.lastPriceFetch = Date.now();
+  render();
+  checkAlerts();
+}
 
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`TwelveData HTTP ${res.status}`);
-            const json = await res.json();
+window.addEventListener("load", async () => {
+  render(); // initial render with fallback prices
+  await initPrices();
+  ensureAnalysis(state.asset);
 
-            // When multiple symbols are requested, TwelveData keys the response by symbol.
-            // When only one symbol resolves, it sometimes returns a flat single-quote object instead — handle both.
-            const bySymbol = (json.symbol && !Array.isArray(json) && Object.keys(json).every(k => typeof json[k] !== 'object' || k === 'symbol'))
-                ? { [json.symbol]: json }
-                : json;
-
-            for (const [ticker, meta] of Object.entries(ASSET_META)) {
-                if (meta.source !== 'twelvedata') continue;
-                const d = bySymbol[meta.tdSymbol];
-                if (!d || d.status === 'error' || d.code || typeof d.close === 'undefined') {
-                    liveData[ticker] = { ...liveData[ticker], error: true };
-                    continue;
-                }
-                liveData[ticker] = {
-                    price: parseFloat(d.close),
-                    change: parseFloat(d.percent_change ?? 0),
-                    high24h: d.high !== undefined ? parseFloat(d.high) : null,
-                    low24h: d.low !== undefined ? parseFloat(d.low) : null,
-                    volume: d.volume ? parseFloat(d.volume) : null,
-                    marketCap: null,
-                    error: false
-                };
-            }
-        }
-
-        async function fetchAllPrices() {
-            if (fetchInFlight) return;
-            fetchInFlight = true;
-            const errors = [];
-
-            try {
-                await fetchCoinGeckoPrices();
-            } catch (e) {
-                errors.push('Crypto (CoinGecko): ' + e.message);
-            }
-
-            try {
-                await fetchTwelveDataPrices();
-            } catch (e) {
-                errors.push('Forex/Commodities/Stocks (TwelveData): ' + e.message);
-            }
-
-            lastFetchTime = new Date();
-            fetchInFlight = false;
-            updateDashboard();
-
-            if (errors.length) {
-                console.warn('Price fetch issues:', errors.join(' | '));
-            }
-        }
-
-        // ============================================================
-        // UI HELPERS
-        // ============================================================
-        function selectAsset(ticker, label) {
-            currentAsset = ticker;
-            document.querySelectorAll('.asset-btn').forEach(btn => btn.classList.remove('active'));
-            if (event && event.target) event.target.classList.add('active');
-            updateDashboard();
-        }
-
-        function searchAsset() {
-            const searchTerm = document.getElementById('searchInput').value.toUpperCase();
-            const found = Object.keys(ASSET_META).find(key =>
-                key.toUpperCase().includes(searchTerm) || ASSET_META[key].name.toUpperCase().includes(searchTerm)
-            );
-
-            if (found) {
-                currentAsset = found;
-                updateDashboard();
-                alert(`Loaded: ${ASSET_META[found].name}`);
-            } else {
-                alert('Asset not found. Please select from available options.');
-            }
-        }
-
-        function formatPrice(value) {
-            if (value === null || value === undefined || isNaN(value)) return 'N/A';
-            const decimals = Math.abs(value) < 10 ? 4 : 2;
-            return `$${value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
-        }
-
-        function generateTradingSignal(change) {
-            if (change === null || change === undefined) return 'HOLD';
-            if (change > 3) return 'STRONG_BUY';
-            if (change > 0.5) return 'BUY';
-            if (change < -3) return 'STRONG_SELL';
-            if (change < -0.5) return 'SELL';
-            return 'HOLD';
-        }
-
-        // RSI/MACD/trend/volatility/sentiment require historical time-series data, which isn't available
-        // on the free API tiers wired up here. Rather than fabricate numbers, these are clearly marked N/A.
-        function getTechnicalPlaceholder() {
-            return { rsi: 'N/A', macd: 'N/A', trend: 'N/A', volatility: 'N/A' };
-        }
-
-        function updateDashboard() {
-            const meta = ASSET_META[currentAsset];
-            const data = liveData[currentAsset];
-
-            document.getElementById('timestamp').textContent = lastFetchTime
-                ? lastFetchTime.toLocaleString()
-                : 'Fetching...';
-
-            document.getElementById('assetIcon').textContent = meta.icon;
-            document.getElementById('assetName').textContent = meta.name;
-            document.getElementById('assetCategory').textContent = meta.category;
-
-            if (!data || data.error || data.price === undefined) {
-                document.getElementById('currentPrice').textContent = data?.error ? 'Unavailable' : 'Loading...';
-                const priceChangeElement = document.getElementById('priceChange');
-                priceChangeElement.textContent = '—';
-                priceChangeElement.className = 'price-change';
-                document.getElementById('high24h').textContent = '-';
-                document.getElementById('low24h').textContent = '-';
-                document.getElementById('volume').textContent = '-';
-            } else {
-                document.getElementById('currentPrice').textContent = formatPrice(data.price);
-
-                const priceChangeElement = document.getElementById('priceChange');
-                const change = data.change ?? 0;
-                priceChangeElement.textContent = `${change > 0 ? '+' : ''}${change.toFixed(2)}%`;
-                priceChangeElement.className = `price-change ${change > 0 ? 'positive' : 'negative'}`;
-
-                document.getElementById('high24h').textContent = data.high24h !== null ? formatPrice(data.high24h) : 'N/A';
-                document.getElementById('low24h').textContent = data.low24h !== null ? formatPrice(data.low24h) : 'N/A';
-                document.getElementById('volume').textContent = data.volume ? `${(data.volume / 1e9).toFixed(2)}B` : 'N/A';
-            }
-
-            // Trading Signal — derived from real % change, not random
-            const change = data && !data.error ? data.change : null;
-            const signal = generateTradingSignal(change);
-            const signalElement = document.getElementById('trading-signal');
-            signalElement.className = `signal ${signal.toLowerCase().replace('_', '-')}`;
-            signalElement.textContent = (data && !data.error) ? signal.replace('_', ' ') : 'NO DATA';
-
-            const tradingStatsEl = document.getElementById('trading-stats');
-            if (tradingStatsEl) {
-                const confidenceLabel = (data && !data.error) ? `${Math.min(95, 60 + Math.abs(change || 0) * 3).toFixed(0)}%` : 'N/A';
-                const riskLabel = (data && !data.error) ? (Math.abs(change || 0) > 3 ? 'High' : Math.abs(change || 0) > 1 ? 'Moderate' : 'Low') : 'N/A';
-                tradingStatsEl.innerHTML = `
-                    <div class="stat-box">
-                        <div class="stat-value">${confidenceLabel}</div>
-                        <div class="stat-label">Confidence</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value">${riskLabel}</div>
-                        <div class="stat-label">Risk Level</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value">${riskLabel === 'High' ? 'Small' : riskLabel === 'Moderate' ? 'Medium' : 'Large'}</div>
-                        <div class="stat-label">Position Size</div>
-                    </div>
-                `;
-            }
-
-            // Technical metrics — honest N/A placeholders (no historical data source wired up yet)
-            const tech = getTechnicalPlaceholder();
-            document.getElementById('rsi').textContent = tech.rsi;
-            document.getElementById('macd').textContent = tech.macd;
-            document.getElementById('trend').textContent = change === null ? 'N/A' : (change >= 0 ? 'UPTREND' : 'DOWNTREND');
-            document.getElementById('volatility').textContent = tech.volatility;
-
-            // Sentiment — derived directly from real change, not random
-            document.getElementById('sentiment').textContent = change === null ? 'N/A' : (change > 0.5 ? 'BULLISH' : change < -0.5 ? 'BEARISH' : 'NEUTRAL');
-            document.getElementById('sentimentScore').textContent = change === null ? 'N/A' : Math.min(100, 50 + change * 5).toFixed(1);
-            document.getElementById('marketRisk').textContent = change === null ? 'N/A' : (Math.abs(change) > 3 ? 'High' : Math.abs(change) > 1 ? 'Moderate' : 'Low');
-            document.getElementById('impliedVol').textContent = change === null ? 'N/A' : `${Math.min(80, Math.abs(change) * 8 + 10).toFixed(1)}%`;
-
-            // Recommendations
-            const recommendations = (data && !data.error) ? [
-                `✓ Live price sourced from ${meta.source === 'coingecko' ? 'CoinGecko' : 'Twelve Data'}`,
-                `✓ 24h change: ${change > 0 ? '+' : ''}${change.toFixed(2)}%`,
-                `✓ Monitor key support/resistance levels`,
-                `✓ Set stop loss and take profit targets`,
-                `✓ This is not financial advice — verify with your broker`
-            ] : [
-                `⚠️ Live data unavailable for ${meta.name} right now`,
-                `⚠️ Try refreshing in a minute, or check another asset`
-            ];
-            document.getElementById('recommendations').innerHTML = recommendations.map(r => `<div class="recommendation-item">${r}</div>`).join('');
-
-            // Asset Info
-            document.getElementById('assetInfo').innerHTML = `
-                <div class="metric">
-                    <span class="metric-label">Market Cap</span>
-                    <span class="metric-value">${data?.marketCap ? `$${(data.marketCap / 1e9).toFixed(2)}B` : 'N/A'}</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">24h High</span>
-                    <span class="metric-value">${data?.high24h !== null && data?.high24h !== undefined ? formatPrice(data.high24h) : 'N/A'}</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">24h Low</span>
-                    <span class="metric-value">${data?.low24h !== null && data?.low24h !== undefined ? formatPrice(data.low24h) : 'N/A'}</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Data Source</span>
-                    <span class="metric-value">${meta.source === 'coingecko' ? 'CoinGecko' : 'Twelve Data'}</span>
-                </div>
-            `;
-
-            // Risk Assessment — based on real price, not random
-            if (data && !data.error && data.price) {
-                document.getElementById('riskAssessment').innerHTML = `
-                    <div class="metric">
-                        <span class="metric-label">Risk Level</span>
-                        <span class="metric-value">${Math.abs(change) > 3 ? 'High' : Math.abs(change) > 1 ? 'Moderate' : 'Low'}</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Stop Loss</span>
-                        <span class="metric-value">${formatPrice(data.price * 0.95)}</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Take Profit</span>
-                        <span class="metric-value">${formatPrice(data.price * 1.10)}</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Risk/Reward</span>
-                        <span class="metric-value">1:${(1.10 / 0.05).toFixed(1)}</span>
-                    </div>
-                `;
-            } else {
-                document.getElementById('riskAssessment').innerHTML = `<div class="metric"><span class="metric-label">Status</span><span class="metric-value">No data available</span></div>`;
-            }
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            if (event && event.target) event.target.classList.add('active');
-        }
-
-        function shareLink() {
-            const url = window.location.href;
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Trading Dashboard',
-                    text: `Check out ${ASSET_META[currentAsset].name} live prices!`,
-                    url: url
-                });
-            } else {
-                alert('Share URL: ' + url);
-                navigator.clipboard.writeText(url);
-            }
-        }
-
-        function downloadReport() {
-            const meta = ASSET_META[currentAsset];
-            const data = liveData[currentAsset];
-            const priceStr = (data && !data.error) ? formatPrice(data.price) : 'Unavailable';
-            const changeStr = (data && !data.error) ? `${data.change > 0 ? '+' : ''}${data.change.toFixed(2)}%` : 'N/A';
-
-            const report = `
-TRADING DASHBOARD REPORT
-Generated: ${new Date().toLocaleString()}
-
-ASSET: ${meta.name} (${currentAsset})
-PRICE: ${priceStr}
-24H CHANGE: ${changeStr}
-CATEGORY: ${meta.category}
-DATA SOURCE: ${meta.source === 'coingecko' ? 'CoinGecko' : 'Twelve Data'}
-
-RECOMMENDATIONS:
-✓ Monitor price action around key levels
-✓ Watch for volatility expansion
-✓ Confirm signals with volume analysis
-✓ Use proper risk management
-✓ Follow your trading plan
-
-Disclaimer: Not financial advice.
-            `;
-
-            const element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(report));
-            element.setAttribute('download', `report-${currentAsset}-${Date.now()}.txt`);
-            element.click();
-        }
-
-        function printDashboard() {
-            window.print();
-        }
-
-        // ============================================================
-        // INIT
-        // ============================================================
-        window.addEventListener('load', () => {
-            updateDashboard(); // render placeholder state immediately
-            fetchAllPrices();  // then fetch real data
-            setInterval(fetchAllPrices, REFRESH_INTERVAL_MS);
-        });
-    </script>
+  setInterval(initPrices, PRICE_REFRESH_MS);
+  setInterval(() => ensureAnalysis(state.asset), ANALYSIS_REFRESH_MS);
+});
+</script>
 </body>
 </html>
