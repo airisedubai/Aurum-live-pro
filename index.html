@@ -71,10 +71,96 @@ window.addEventListener("DOMContentLoaded", () => {
 // ============================================================
 const TWELVEDATA_API_KEY = "53ca0f596b344545b65f4384aa2fc6ef";
 const CLAUDE_MODEL = "claude-haiku-4-5-20251001";
-const PRICE_REFRESH_MS = 60000;       // 1 minute price refresh
-const ANALYSIS_REFRESH_MS = 300000;   // 5 minute analysis cache refresh per asset
-const USD_AED = 3.673;
-const LS_KEY_STORAGE = "aurum_pro_anthropic_key";
+  const PRICE_REFRESH_MS = 60000;       // 1 minute price refresh
+  const ANALYSIS_REFRESH_MS = 300000;   // 5 minute analysis cache refresh per asset
+  const GOLD_REFRESH_MS = 10000;       // 10 second gold refresh for scalping
+  const USD_AED = 3.673;
+  const LS_KEY_STORAGE = "aurum_pro_anthropic_key";
+
+  // ============================================================
+  // TECHNICAL INDICATORS (pure JS — no library needed)
+  // ============================================================
+  function calcEMA(prices, period) {
+    if (prices.length < period) return null;
+    const k = 2 / (period + 1);
+    let ema = prices.slice(0, period).reduce((a, b) => a + b, 0) / period;
+    for (let i = period; i < prices.length; i++) {
+      ema = prices[i] * k + ema * (1 - k);
+    }
+    return ema;
+  }
+
+  function calcRSI(prices, period = 14) {
+    if (prices.length < period + 1) return null;
+    let gains = 0, losses = 0;
+    for (let i = 1; i <= period; i++) {
+      const diff = prices[i] - prices[i - 1];
+      if (diff >= 0) gains += diff; else losses -= diff;
+    }
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    if (avgLoss === 0) return 100;
+    let rs = avgGain / avgLoss;
+    let rsi = 100 - (100 / (1 + rs));
+    for (let i = period + 1; i < prices.length; i++) {
+      const diff = prices[i] - prices[i - 1];
+      const gain = diff > 0 ? diff : 0;
+      const loss = diff < 0 ? -diff : 0;
+      avgGain = (avgGain * (period - 1) + gain) / period;
+      avgLoss = (avgLoss * (period - 1) + loss) / period;
+      if (avgLoss === 0) return 100;
+      rs = avgGain / avgLoss;
+      rsi = 100 - (100 / (1 + rs));
+    }
+    return rsi;
+  }
+
+  async function fetchOhlc(symbol, interval = "1min", outputsize = 30) {
+    const url = `https://api.twelvedata.com/ohlc?symbol=${encodeURIComponent(symbol)}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVEDATA_API_KEY}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Ohlc HTTP " + res.status);
+    const json = await res.json();
+    return json.values || [];
+  }
+
+  async function fetchAtr(assetId) {
+    const a = getAsset(assetId);
+    if (a.source !== "twelvedata") return null;
+    try {
+      const ohlc = await fetchOhlc(a.tdSymbol, "1min", 14);
+      if (!ohlc || ohlc.length < 14) return null;
+      const trValues = [];
+      for (let i = 1; i < ohlc.length; i++) {
+        const high = parseFloat(ohlc[i].high);
+        const low = parseFloat(ohlc[i].low);
+        const prevClose = parseFloat(ohlc[i - 1].close);
+        const tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
+        trValues.push(tr);
+      }
+      return trValues.reduce((a, b) => a + b, 0) / trValues.length;
+    } catch (e) { return null; }
+  }
+
+  async function fetchIndicators(assetId) {
+    const a = getAsset(assetId);
+    if (a.source !== "twelvedata") return null;
+    try {
+      const ohlc = await fetchOhlc(a.tdSymbol, "5min", 50);
+      if (!ohlc || ohlc.length < 21) return null;
+      const closes = ohlc.map(o => parseFloat(o.close)).reverse();
+      const highs = ohlc.map(o => parseFloat(o.high)).reverse();
+      const lows = ohlc.map(o => parseFloat(o.low)).reverse();
+      const ema9 = calcEMA(closes, 9);
+      const ema21 = calcEMA(closes, 21);
+      const ema50 = calcEMA(closes, 50);
+      const rsi = calcRSI(closes, 14);
+      const atr = highs.slice(-14).reduce((sum, h, i) => {
+        const tr = Math.max(h - lows[highs.length - 14 + i], Math.abs(h - closes[highs.length - 14 + i]), Math.abs(lows[highs.length - 14 + i] - closes[highs.length - 14 + i]));
+        return sum + tr;
+      }, 0) / 14;
+      return { ema9, ema21, ema50, rsi, atr, currentPrice: closes[closes.length - 1], trend: ema9 > ema21 ? "bullish" : ema9 < ema21 ? "bearish" : "neutral" };
+    } catch (e) { return null; }
+  }
 
 function getStoredApiKey() {
   try { return localStorage.getItem(LS_KEY_STORAGE) || ""; } catch (e) { return ""; }
@@ -228,6 +314,19 @@ Base entry/stop/targets realistically around the current price. Keep all string 
 
   let cleaned = textBlock.text.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "");
   return JSON.parse(cleaned);
+}
+
+// ============================================================
+// PERSISTENCE (sessionStorage for trade log)
+// ============================================================
+function saveTradesToStorage() {
+  try { sessionStorage.setItem("aurum_trades", JSON.stringify(aeState.trades)); } catch (e) {}
+}
+function loadTradesFromStorage() {
+  try {
+    const stored = sessionStorage.getItem("aurum_trades");
+    if (stored) aeState.trades = JSON.parse(stored);
+  } catch (e) {}
 }
 
 async function fetchClaudeChatReply(assetSym, price, changePct, analysisData, history, userQuery, apiKey) {
@@ -424,8 +523,8 @@ async function sendMessage(customQuery) {
   try {
     const a = getAsset(assetId);
     const analysisEntry = state.analysis[assetId];
-    const reply = await fetchClaudeChatReply(a.sym, price, change, analysisEntry?.data, state.messages[assetId], query, apiKey);
-    state.messages[assetId].push({ role: "assistant", text: reply });
+const claudeReply = await fetchClaudeChatReply(a.sym, price, change, analysisEntry?.data, state.messages[assetId], query, apiKey);
+        state.messages[assetId].push({ role: "assistant", text: claudeReply });
   } catch (e) {
     console.warn("Chat reply failed:", e.message);
     const msg = e.message === "NO_API_KEY"
@@ -646,12 +745,18 @@ function renderTabContent(a, price, change, data, isAnalysisLoading, msgs) {
         <div><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:9px;">Bearish</span><span style="font-size:9px;color:#EF4444;">${data.bearish}%</span></div><div style="height:4px;background:rgba(255,255,255,0.05);border-radius:2px;"><div style="height:4px;width:${data.bearish}%;background:#EF4444;border-radius:2px;"></div></div></div>
       </div>
 
-      <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:14px;">
-        <div style="font-size:9px;color:#475569;margin-bottom:8px;text-transform:uppercase;">AI Analysis Reasons</div>
-        ${(data.reasons||[]).slice(0,5).map((r,i) => `<div style="display:flex;gap:8px;margin-bottom:8px;"><span style="font-size:10px;color:#f59e0b;">${i+1}.</span><span style="font-size:11px;color:#94A3B8;line-height:1.5;">${esc(r)}</span></div>`).join("")}
+<div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:14px;margin-bottom:10px;">
+        <div style="font-size:9px;color:#475569;margin-bottom:8px;text-transform:uppercase;">Volatility & Action</div>
+        <div style="display:flex;gap:4px;margin-bottom:8px;">
+          <button id="qtLong" style="flex:1;background:linear-gradient(135deg,#10B981,#059669);border:none;border-radius:8px;padding:10px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">⬆ LONG</button>
+          <button id="qtShort" style="flex:1;background:linear-gradient(135deg,#EF4444,#DC2626);border:none;border-radius:8px;padding:10px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">⬇ SHORT</button>
+        </div>
+        <div style="font-size:9px;color:#475569;text-align:center;">1-click · Auto-logged · SL from calculator</div>
       </div>
-    `;
-  }
+      ${(data.reasons||[]).slice(0,5).map((r,i) => `<div style="display:flex;gap:8px;margin-bottom:8px;"><span style="font-size:10px;color:#f59e0b;">${i+1}.</span><span style="font-size:11px;color:#94A3B8;line-height:1.5;">${esc(r)}</span></div>`).join("")}
+    </div>
+  `;
+}
 
   if (state.activeTab === "options") {
     return `
@@ -730,6 +835,20 @@ function attachHandlers() {
       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     });
   }
+  const qtLong = document.getElementById("qtLong");
+  if (qtLong) qtLong.addEventListener("click", () => {
+    const asset = aeGetAsset();
+    const price = getPrice(state.asset);
+    aeState.trades.push({ id: Date.now(), timestamp: Date.now(), asset: asset.label, direction: "LONG", entry: price.toFixed(2), slPips: aeState.sl.pips || 40, status: "open", notes: "Quick trade via dashboard", pnl: 0 });
+    saveTradesToStorage(); render();
+  });
+  const qtShort = document.getElementById("qtShort");
+  if (qtShort) qtShort.addEventListener("click", () => {
+    const asset = aeGetAsset();
+    const price = getPrice(state.asset);
+    aeState.trades.push({ id: Date.now(), timestamp: Date.now(), asset: asset.label, direction: "SHORT", entry: price.toFixed(2), slPips: aeState.sl.pips || 40, status: "open", notes: "Quick trade via dashboard", pnl: 0 });
+    saveTradesToStorage(); render();
+  });
 
   const keyToggleBtn = document.getElementById("keyToggleBtn");
   if (keyToggleBtn) {
@@ -780,6 +899,9 @@ window.addEventListener("load", async () => {
 
   setInterval(initPrices, PRICE_REFRESH_MS);
   setInterval(() => ensureAnalysis(state.asset), ANALYSIS_REFRESH_MS);
+  // Faster gold refresh for scalpers (10s vs 60s)
+  setInterval(() => { if (state.asset === "gold") initPrices(); }, GOLD_REFRESH_MS);
+  loadTradesFromStorage();
 });
 </script>
 
