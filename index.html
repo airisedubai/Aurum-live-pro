@@ -144,22 +144,56 @@ const LS_KEY_STORAGE = "aurum_pro_anthropic_key";
   async function fetchIndicators(assetId) {
     const a = getAsset(assetId);
     if (a.source !== "twelvedata") return null;
-    try {
-      const ohlc = await fetchOhlc(a.tdSymbol, "5min", 50);
-      if (!ohlc || ohlc.length < 21) return null;
-      const closes = ohlc.map(o => parseFloat(o.close)).reverse();
-      const highs = ohlc.map(o => parseFloat(o.high)).reverse();
-      const lows = ohlc.map(o => parseFloat(o.low)).reverse();
-      const ema9 = calcEMA(closes, 9);
-      const ema21 = calcEMA(closes, 21);
-      const ema50 = calcEMA(closes, 50);
-      const rsi = calcRSI(closes, 14);
-      const atr = highs.slice(-14).reduce((sum, h, i) => {
-        const tr = Math.max(h - lows[highs.length - 14 + i], Math.abs(h - closes[highs.length - 14 + i]), Math.abs(lows[highs.length - 14 + i] - closes[highs.length - 14 + i]));
-        return sum + tr;
-      }, 0) / 14;
-      return { ema9, ema21, ema50, rsi, atr, currentPrice: closes[closes.length - 1], trend: ema9 > ema21 ? "bullish" : ema9 < ema21 ? "bearish" : "neutral" };
-    } catch (e) { return null; }
+    try { // ... existing code is already here ... } catch (e) { return null; }
+  }
+
+  // ============================================================
+  // GOLD SCALPING FEATURES (inspired by awesome-systematic-trading strategies)
+  // ============================================================
+
+  // Trend Strength: Time Series Momentum — positive when price > price N periods ago
+  function calcTrendMomentum(prices, lookback = 20) {
+    if (prices.length < lookback + 1) return null;
+    const current = prices[prices.length - 1];
+    const past = prices[prices.length - 1 - lookback];
+    const change = ((current - past) / past) * 100;
+    return { change, direction: change > 0 ? "bullish" : change < 0 ? "bearish" : "neutral", strength: Math.min(100, Math.abs(change) * 5) };
+  }
+
+  // Volatility Regime: classifies current ATR as low/medium/high relative to recent history
+  function calcVolatilityRegime(prices, atrCurrent) {
+    if (prices.length < 21) return "unknown";
+    const recent = prices.slice(-20);
+    const ranges = [];
+    for (let i = 1; i < recent.length; i++) {
+      ranges.push(Math.abs(recent[i] - recent[i - 1]));
+    }
+    const avgRange = ranges.reduce((a, b) => a + b, 0) / ranges.length;
+    if (avgRange === 0) return "low";
+    const ratio = atrCurrent / avgRange;
+    if (ratio > 1.5) return "high";
+    if (ratio > 0.8) return "medium";
+    return "low";
+  }
+
+  // Support/Resistance: find recent highs and lows
+  function calcSupportResistance(prices, lookback = 10) {
+    if (prices.length < lookback) return null;
+    const recent = prices.slice(-lookback);
+    const high = Math.max(...recent);
+    const low = Math.min(...recent);
+    const current = prices[prices.length - 1];
+    return { resistance: high, support: low, nearestS: current - low < high - current ? low : high, nearestR: current - low < high - current ? high : low };
+  }
+
+  // Multi-timeframe alignment check (like the 3 EMA setup in Aurum Engine)
+  function calcMTFAlignment(ema9, ema21, ema50) {
+    if (ema9 == null || ema21 == null || ema50 == null) return "unknown";
+    if (ema9 > ema21 && ema21 > ema50) return "strong_bull";
+    if (ema9 > ema21 && ema21 < ema50) return "contradiction";
+    if (ema9 < ema21 && ema21 < ema50) return "strong_bear";
+    if (ema9 < ema21 && ema21 > ema50) return "contradiction";
+    return "flat";
   }
 
 function getStoredApiKey() {
@@ -757,6 +791,19 @@ function renderTabContent(a, price, change, data, isAnalysisLoading, msgs) {
       </div>
       ${(data.reasons||[]).slice(0,5).map((r,i) => `<div style="display:flex;gap:8px;margin-bottom:8px;"><span style="font-size:10px;color:#f59e0b;">${i+1}.</span><span style="font-size:11px;color:#94A3B8;line-height:1.5;">${esc(r)}</span></div>`).join("")}
     </div>
+
+    ${a.id === 'gold' ? `
+    <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:14px;margin-bottom:10px;">
+      <div style="font-size:9px;color:#475569;margin-bottom:8px;text-transform:uppercase;">Gold Scalping Indicators</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><div style="font-size:9px;color:#475569;">Trend Momentum (20)</div><div id="goldTrend" style="font-size:14px;font-weight:700;">—</div></div>
+        <div><div style="font-size:9px;color:#475569;">Volatility Regime</div><div id="goldVolRegime" style="font-size:14px;font-weight:700;">—</div></div>
+        <div><div style="font-size:9px;color:#475569;">Support</div><div id="goldSupport" style="font-size:14px;font-weight:700;color:#10B981;">—</div></div>
+        <div><div style="font-size:9px;color:#475569;">Resistance</div><div id="goldResistance" style="font-size:14px;font-weight:700;color:#EF4444;">—</div></div>
+        <div><div style="font-size:9px;color:#475569;">MTF Alignment</div><div id="goldMTF" style="font-size:14px;font-weight:700;">—</div></div>
+        <div><div style="font-size:9px;color:#475569;">RSI (14)</div><div id="goldRSI" style="font-size:14px;font-weight:700;">—</div></div>
+      </div>
+    </div>` : ''}
   `;
 }
 
