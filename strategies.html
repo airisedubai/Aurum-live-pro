@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AURUM PRO — Strategy Reference</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #07090f; color: #e2e8f0; font-family: system-ui, sans-serif; padding: 20px; }
+  a { color: #f59e0b; }
+  h1 { color: #f59e0b; margin-bottom: 10px; }
+  h2 { color: #94a3b8; margin: 20px 0 10px; }
+  h3 { color: #cbd5e1; margin: 12px 0 6px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-right: 4px; }
+  .tag-gold { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .tag-crypto { background: rgba(249,115,22,0.15); color: #f97316; }
+  .tag-forex { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .tag-commodity { background: rgba(16,185,129,0.15); color: #10b981; }
+  .tag-equity { background: rgba(139,92,246,0.15); color: #8b5cf6; }
+  .card { background: rgba(13,20,33,0.9); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 700; }
+  .badge-high { background: rgba(16,185,129,0.15); color: #10b981; }
+  .badge-med { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .badge-low { background: rgba(239,68,68,0.15); color: #ef4444; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  th { color: #475569; font-size: 10px; text-transform: uppercase; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .hint { font-size: 10px; color: #475569; margin-top: 4px; }
+  .sharpe { font-weight: 700; color: #10b981; }
+  .nav { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .nav a { padding: 6px 14px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.15); border-radius: 8px; color: #94a3b8; font-size: 11px; font-weight: 700; text-decoration: none; }
+  .nav a:hover { color: #f59e0b; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 10px; color: #475569; }
+  code { background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<h1>📚 AURUM PRO — Strategy Reference</h1>
+<p style="color:#64748b;font-size:12px;margin-bottom:16px;">This page describes strategies from the <a href="https://github.com/paperswithbacktest/awesome-systematic-trading" target="_blank">awesome-systematic-trading</a> collection and how they relate to the AURUM PRO dashboard. Use this as a guide to understand what each tool on the dashboard does.</p>
+
+<div class="nav">
+  <a href="#indicators">Indicators</a>
+  <a href="#strategies">Strategies</a>
+  <a href="#tools">Tools</a>
+  <a href="#backtesting">Backtesting</a>
+  <a href="#risk">Risk</a>
+  <a href="#dashboard">Dashboard Guide</a>
+</div>
+
+<h2 id="indicators">📊 Technical Indicators</h2>
+<p style="font-size:11px;color:#64748b;margin-bottom:12px;">These are the indicators and calculations used in the AURUM PRO dashboard for gold/crypto analysis. Each links to the library that implements it.</p>
+
+<div class="grid">
+  <div class="card">
+    <h3>TA-Lib <span class="badge badge-high">Industry Standard</span></h3>
+    <span class="tag tag-commodity">Commodities</span>
+    <span class="tag tag-forex">Forex</span>
+    <p style="font-size:11px;color:#94a3b8;margin-top:6px;">The most widely used technical analysis library in trading. Provides RSI, MACD, EMA, ATR, Bollinger Bands, and 150+ other indicators.</p>
+    <p class="hint">💡 On the dashboard: ATR volatility, EMA trend, and RSI momentum are calculated using TA-Lib-style formulas.</p>
+    <p class="hint">🔗 <a href="https://github.com/mrjbq7/ta-lib" target="_blank">ta-lib</a></p>
+  </div>
+
+  <div class="card">
+    <h3>Pandas TA <span class="badge badge-high">130+ Indicators</span></h3>
+    <span class="tag tag-equity">Equities</span>
+    <span class="tag tag-crypto">Crypto</span>
+    <p style="font-size:11px;color:#94a3b8;margin-top:6px;">30+ indicators and 60+ candlestick patterns built on Pandas. Easy to use with simple function calls.</p>
+    <p class="hint">💡 Use for pattern recognition on gold candlesticks — engulfing, doji, hammer signals for entry timing.</p>
+    <p class="hint">🔗 <a href="https://github.com/twopirllc/pandas-ta" target="_blank">pandas-ta</a></p>
+  </div>
+
+  <div class="card">
+    <h3>vectorbt <span class="badge badge-high">Fast Backtesting</span></h3>
+    <span class="tag tag-equity">Equities</span>
+    <span class="tag tag-commodity">Commodities</span>
+    <p style="font-size:11px;color:#94a3b8;margin-top:6px;">Vectorized backtesting using NumPy/Pandas. Test thousands of strategy parameters in seconds with Numba acceleration.</p>
+    <p class="hint">💡 Backtest gold trend-following or mean-reversion strategies against historical data before going live.</p>
+    <p class="hint">🔗 <a href="https://github.com/polakowo/vectorbt" target="_blank">vectorbt</a></p>
+  </div>
+
+  <div class="card">
+    <h3>FinMarketPy <span class="tag tag-commodity">Commodities</span></h3>
+    <p style="font-size:11px;color:#94a3b8;margin-top:6px;">Backtesting library with built-in commodity futures data, including energy and metals (gold/silver/oil).</p>
+    <p class="hint">💡 Directly relevant for gold futures backtesting with proper contract roll handling.</p>
+    <p class="hint">🔗 <a href="https://github.com/cuemacro/finmarketpy" target="_blank">finmarketpy</a></p>
+  </div>
+
+  <div class="card">
+    <h3>quantstats <span class="tag tag-forex">Analytics</span></h3>
+    <p style="font-size:11px;color:#94a3b8;margin-top:6px;">Portfolio analytics and performance reporting — Sharpe, max drawdown, win rate, monthly returns. Generates beautiful HTML reports.</p>
+    <p class="hint">💡 Use to generate performance reports for your gold trading strategy after running it through a backtest.</p>
+    <p class="hint">🔗 <a href="https://github.com/ranaroussi/quantstats" target="_blank">quantstats</a></p>
+  </div>
+</div>
+
+<h2 id="strategies">🎯 Trading Strategies</h2>
+<p style="font-size:11px;color:#64748b;margin-bottom:12px;">Academic and institutional strategies ranked by Sharpe ratio. Strategies with gold/commodity relevance are marked.</p>
+
+<table>
+<tr><th>Strategy</th><th>Sharpe</th><th>Vol</th><th>Type</th><th>How It Works</th><th>Dash Link</th></tr>
+<tr>
+  <td><strong>Time Series Momentum</strong></td>
+  <td class="sharpe">0.58</td><td>20.5%</td><td><span class="tag tag-commodity">Gold</span><span class="tag tag-commodity">Commodity</span></td>
+  <td>If price is above its 12-month average → BUY. Below → SELL. Simple trend-following that works well for gold and commodities.</td>
+  <td><em>Predict tab → 1-Month forecast uses this principle</em></td>
+</tr>
+<tr>
+  <td><strong>Short-Term Reversal</strong></td>
+  <td class="sharpe">0.82</td><td>21.4%</td><td><span class="tag tag-commodity">Gold</span></td>
+  <td>Mean-reversion: if gold moves sharply up intraday, it often pulls back. Enter on dips, exit on bounces. Best for scalping.</td>
+  <td><em>AURUM ENGINE → RSI overbought/oversold signals</em></td>
+</tr>
+<tr>
+  <td><strong>Volatility Risk Premium</strong></td>
+  <td class="sharpe">0.64</td><td>13.2%</td><td><span class="tag tag-commodity">Gold</span><span class="tag tag-crypto">Crypto</span></td>
+  <td>Trade when implied volatility is higher than realized volatility → sell options or trade directionally with the trend.</td>
+  <td><em>ATR indicator on dashboard shows current vol regime</em></td>
+</tr>
+<tr>
+  <td><strong>Trend-Following (Cross-Asset)</strong></td>
+  <td class="sharpe">0.57</td><td>10.4%</td><td><span class="tag tag-commodity">Gold</span><span class="tag tag-commodity">Commodity</span></td>
+  <td>When gold trend is up and DXY (dollar) trend is down → strong BUY signal for gold. EMA 9/21/50 alignment confirms direction.</td>
+  <td><em>Dashboard → EMA ribbon + DXY correlation</em></td>
+</tr>
+<tr>
+  <td><strong>Momentum Asset Allocation</strong></td>
+  <td>0.32</td><td>11.0%</td><td><span class="tag tag-commodity">Gold</span><span class="tag tag-crypto">Crypto</span></td>
+  <td>Rotate into the strongest-performing asset each month. If gold > BTC > oil this month, go gold.</td>
+  <td><em>Dashboard → multi-asset comparison</em></td>
+</tr>
+<tr>
+  <td><strong>Commodity Skewness Effect</strong></td>
+  <td class="sharpe">0.48</td><td>17.7%</td><td><span class="tag tag-commodity">Gold</span></td>
+  <td>When gold returns show negative skewness (large upside surprises expected), it's a BUY signal. Positive skewness → SELL.</td>
+  <td><em>Advanced: requires ATR + return distribution analysis</em></td>
+</tr>
+<tr>
+  <td><strong>Gold Term Structure</strong></td>
+  <td>0.13</td><td>23.1%</td><td><span class="tag tag-commodity">Gold</span></td>
+  <td>If longer-dated gold futures are MORE expensive than spot (contango) → backwardation trade (BUY). If reverse (backwardation) → SELL.</td>
+  <td><em>Requires futures data — not yet on dashboard</em></td>
+</tr>
+<tr>
+  <td><strong>WTI/BRENT Spread</strong></td>
+  <td>-0.20</td><td>11.6%</td><td><span class="tag tag-commodity">Energy</span></td>
+  <td>Trade the spread between WTI and Brent crude. When spread widens → mean-revert. Used by oil traders, not gold.</td>
+  <td><em>Dashboard → Crude Oil tab (not gold-specific)</em></td>
+</tr>
+<tr>
+  <td><strong>Overnight Seasonality (BTC)</strong></td>
+  <td class="sharpe">0.89</td><td>20.8%</td><td><span class="tag tag-crypto">Crypto</span></td>
+  <td>Bitcoin tends to move up overnight (Asian/European hours) and down during US session. Trade the overnight long.</td>
+  <td><em>Dashboard → Crypto tabs (BTC/ETH) + 10s refresh</em></td>
+</tr>
+<tr>
+  <td><strong>Dollar Carry Trade</strong></td>
+  <td>0.11</td><td>5.8%</td><td><span class="tag tag-forex">Forex</span><span class="tag tag-commodity">Gold</span></td>
+  <td>When USD is weak and real yields are low → gold tends to rise. Inverse correlation with DXY.</td>
+  <td><em>Dashboard → Gold tab shows USD correlation</em></td>
+</tr>
+</table>
+
+<h2 id="tools">🧰 Trading Tools & Libraries</h2>
+<div class="grid">
+  <div class="card">
+    <h3>pandas-datareader</h3>
+    <span class="tag tag-commodity">Data</span>
+    <p style="font-size:11px;color:#94A3B8;margin-top:6px;">Download market data from Yahoo Finance, FRED, Fama-French. Useful for pulling historical gold, silver, and CPI data for backtesting.</p>
+    <p class="hint">🔗 <a href="https://github.com/pydata/pandas-datareader" target="_blank">pandas-datareader</a></p>
+  </div>
+
+  <div class="card">
+    <h3>yfinance</h3>
+    <span class="tag tag-commodity">Data</span>
+    <p style="font-size:11px;color:#94A3B8;margin-top:6px;">Threaded Python API for Yahoo Finance data. Get gold (GC=F), silver (SI=F), oil (CL=F) historical OHLC data easily.</p>
+    <p class="hint">💡 Use to populate backtesting data for gold strategies before going live on the dashboard.</p>
+    <p class="hint">🔗 <a href="https://github.com/ranaroussi/yfinance" target="_blank">yfinance</a></p>
+  </div>
+
+  <div class="card">
+    <h3>Investpy</h3>
+    <span class="tag tag-commodity">Data</span>
+    <p style="font-size:11px;color:#94A3B8;margin-top:6px;">Financial data extraction from Investing.com, including gold futures, real yields, DXY, and economic calendar events.</p>
+    <p class="hint">💡 Can fetch economic calendar data (CPI, FOMC, NFP) to add event-based alerts to the dashboard.</p>
+    <p class="hint">🔗 <a href="https://github.com/alvarobartt/investpy" target="_blank">investpy</a></p>
+  </div>
+
+  <div class="card">
+    <h3>ccxt</h3>
+    <span class="tag tag-crypto">Crypto</span>
+    <p style="font-size:11px;color:#94A3B8;margin-top:6px;">Unified API for 100+ crypto exchanges. Place orders, check balances, and get real-time order book data.</p>
+    <p class="hint">💡 For paper-trading crypto directly from the dashboard with live order execution.</p>
+    <p class="hint">🔗 <a href="https://github.com/ccxt/ccxt" target="_blank">ccxt</a></p>
+  </div>
+
+  <div class="card">
+    <h3>Hummingbot</h3>
+    <span class="tag tag-crypto">Market Making</span>
+    <p style="font-size:11px;color:#94A3B8;margin-top:6px;">Open-source market-making bot for crypto. Earns by placing limit orders on both sides of the order book, profiting from spread.</p>
+    <p class="hint">💡 Advanced: use as a basis for gold futures market-making (requires brokerage API integration).</p>
+    <p class="hint">🔗 <a href="https://github.com/CoinAlpha/hummingbot" target="_blank">hummingbot</a></p>
+  </div>
+
+  <div class="card">
+    <h3>Prophet (Meta)</h3>
+    <span class="tag tag-commodity">Forecasting</span>
+    <p style="font-size:11px;color:#94A3B8;margin-top:6px;">Facebook's time-series forecasting tool. Automatically detects trends, seasonality, and holiday effects in gold prices.</p>
+    <p class="hint">💡 Alternative to the Claude AI approach — use Prophet for statistical gold price forecasts that don't require API keys.</p>
+    <p class="hint">🔗 <a href="https://github.com/facebook/prophet" target="_blank">prophet</a></p>
+  </div>
+</div>
+
+<h2 id="backtesting">🔬 Backtesting Frameworks</h2>
+<table>
+<tr><th>Framework</th><th>Language</th><th>Use Case</th><th>Gold Relevance</th></tr>
+<tr><td><a href="https://github.com/quantopian/zipline" target="_blank">Zipline</a></td><td>Python</td><td>Event-driven equity backtesting with precise order simulation</td><td>Backtest gold trend strategies with realistic slippage</td></tr>
+<tr><td><a href="https://github.com/mementum/backtrader" target="_blank">Backtrader</a></td><td>Python</td><td>Flexible backtesting with built-in performance metrics</td><td>Best for gold scalping backtests with multiple timeframes</td></tr>
+<tr><td><a href="https://github.com/kernc/backtesting.py" target="_blank">backtesting.py</a></td><td>Python</td><td>Lightweight, fast, user-friendly backtesting</td><td>Quick gold strategy prototyping before live trading</td></tr>
+<tr><td><a href="https://github.com/nkaz001/hftbacktest" target="_blank">HFTBacktest</a></td><td>Python + Numba</td><td>High-frequency backtesting on tick data</td><td>Gold scalping micro-structure testing (order book level)</td></tr>
+<tr><td><a href="https://github.com/nautechsystems/nautilus_trader" target="_blank">Nautilus Trader</a></td><td>Python/Rust</td><td>Production-ready algorithmic trading platform</td><td>Live gold execution with the same code used for backtesting</td></tr>
+</table>
+
+<h2 id="dashboard">🖥 Dashboard Guide</h2>
+<p style="font-size:11px;color:#64748b;margin-bottom:12px;">How the AURUM PRO dashboard maps to the strategies and tools above.</p>
+
+<table>
+<tr><th>Dashboard Feature</th><th>Strategy Behind It</th><th>What It Does</th><th>How to Use</th></tr>
+<tr>
+  <td><strong>💰 Price Dashboard</strong></td>
+  <td>Trend-following + mean-reversion hybrid</td>
+  <td>Shows live gold price, 24h change, and Claude AI signal (BUY/SELL/HOLD) with confidence and levels</td>
+  <td>Select Gold tab → Read the signal → Check Entry Zone and Stop Loss → Decide to trade</td>
+</tr>
+<tr>
+  <td><strong>📈 Predict Tab</strong></td>
+  <td>Time Series Momentum + Volatility Risk Premium</td>
+  <td>1-Day, 1-Week, 1-Month price forecasts with % change and target prices. Sentiment bars show bullish/bearish balance.</td>
+  <td>Use 1-Day forecast for scalping decisions. High vol = wider stops needed.</td>
+</tr>
+<tr>
+  <td><strong>⚡ Options Tab</strong></td>
+  <td>Risk/Reward optimization</td>
+  <td>Trade setup with Entry Zone, Target 1/2, Stop Loss, R:R ratio, and key risks</td>
+  <td>Wait for price to enter the Entry Zone, place BUY/SELL with SL at the shown level, target TP1 first</td>
+</tr>
+<tr>
+  <td><strong>💬 Chat Tab</strong></td>
+  <td>AI-powered contextual analysis</td>
+  <td>Ask Claude questions about gold: "should I buy now?", "what's the DXY impact?", "how's vol looking?"</td>
+  <td>Type your question in the chat. Without an Anthropic key, you get rule-based estimates.</p>
+</tr>
+<tr>
+  <td><strong>⚜ Aurum Engine</strong></td>
+  <td>SMC/ICT price action trading</td>
+  <td>10-rule checklist for structured trading. Risk calculator with TP1-TP3 ladder and position sizing</td>
+  <td>Complete the checklist → Calculator auto-sizes your position → Log the trade</td>
+</tr>
+<tr>
+  <td><strong>🔑 API Key Panel</strong></td>
+  <td>BYOK for privacy</td>
+  <td>Enter Anthropic key for AI analysis. Key stored locally in your browser, never sent anywhere except Claude.</td>
+  <td>Click 🔑 icon → paste your key from console.anthropic.com → set a spending cap for safety</td>
+</tr>
+</table>
+
+<h2>📖 Key Concepts for Gold Trading</h2>
+<div class="card">
+  <h3>Why Gold Moves</h3>
+  <ul style="font-size:11px;color:#94A3B8;line-height:1.8;padding-left:16px;">
+    <li><strong>USD Strength</strong> — Gold and DXY are inversely correlated. Weak dollar → gold up.</li>
+    <li><strong>Real Yields</strong> — When US 10Y TIPS yield drops, gold rises (lower opportunity cost of holding non-yielding asset).</li>
+    <li><strong>Fed Policy</strong> — Rate cuts → gold up. Rate hikes → gold down.</li>
+    <li><strong>Geopolitics</strong> — Wars, conflicts, uncertainty → gold safe-haven bid.</li>
+    <li><strong>Inflation</strong> — Gold is an inflation hedge. Rising CPI → gold up.</li>
+    <li><strong>Central Bank Buying</strong> — China, India, Russia accumulating gold → bullish structural trend.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3>Gold Scalping Tips</h3>
+  <ul style="font-size:11px;color:#94A3B8;line-height:1.8;padding-left:16px;">
+    <li>Use <strong>5m or 1m charts</strong> for entry timing</li>
+    <li>Set SL at <strong>1.5× ATR</strong> from entry (dynamic, not fixed pips)</li>
+    <li>Target <strong>TP1 at 1× R:R, TP2 at 2× R:R</strong> — bank TP1+TP2, let TP3 ride</li>
+    <li>Trade only during <strong>London + New York overlap</strong> (11:30–14:30 GMT) for max liquidity</li>
+    <li>Check <strong>DXY and real yields</strong> for directional bias before entering</li>
+    <li>Use the <strong>Aurum Engine checklist</strong> for disciplined entries — never skip the setup</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3>Risk Management Rules</h3>
+  <ul style="font-size:11px;color:#94A3B8;line-height:1.8;padding-left:16px;">
+    <li>Never risk more than <strong>0.5–1% of equity per trade</strong></li>
+    <li>Maximum <strong>3 concurrent positions</strong></li>
+    <li>Stop loss is <strong>never widened</strong> — if hit, exit and reassess</li>
+    <li>Take profits at TP1 + TP2 first, then move SL to breakeven</li>
+    <li>No trading during <strong>high-impact news</strong> (NFP, FOMC, CPI) unless you have a specific strategy for it</li>
+  </ul>
+</div>
+
+<div class="footer">
+  <p>AURUM PRO Dashboard — Strategy Reference Guide | Strategies are from paperswithbacktest.com and academic literature</p>
+  <p>⚠ This is not financial advice. Past performance does not guarantee future results. Always use proper risk management.</p>
+  <p>Built with data from: CoinGecko, TwelveData, Claude AI (BYOK) | Dashboard: github.com/airisedubai/Aurum-live-pro</p>
+  <p>Strategy Reference: github.com/paperswithbacktest/awesome-systematic-trading</p>
+</div>
+
+</body>
+</html>
