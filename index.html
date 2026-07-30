@@ -330,27 +330,46 @@ async function fetchCoinGeckoPrices() {
   const cgAssets = ASSETS.filter(a => a.source === "coingecko");
   const out = {};
   
-  for (const a of cgAssets) {
-    try {
-      const url = `https://api.coingecko.com/api/v3/simple/price?ids=${a.cgId}&vs_currencies=usd&include_24hr_change=true`;
-      const res = await fetch(url);
-      if (!res.ok) {
-        console.warn(`CoinGecko HTTP ${res.status} for ${a.cgId}`);
-        out[a.id] = { error: true };
-        continue;
-      }
-      const json = await res.json();
-      const d = json[a.cgId];
-      if (d && typeof d.usd === "number") {
-        out[a.id] = { price: d.usd, change: d.usd_24h_change ?? 0, error: false };
+  // CoinGecko now requires User-Agent header - use alternative free API
+  // Using Binance public API which doesn't require auth for basic prices
+  const binanceIds = {
+    'btc': 'BTCUSDT',
+    'eth': 'ETHUSDT', 
+    'sol': 'SOLUSDT',
+    'xrp': 'XRPUSDT',
+    'bnb': 'BNBUSDT'
+  };
+  
+  try {
+    // Fetch all crypto from Binance at once
+    const symbols = Object.values(binanceIds).join(',');
+    const url = `https://api.binance.com/api/v3/ticker/24hr?symbols=["${symbols.replace(/,/g,'","')}"]`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Binance HTTP ' + res.status);
+    const data = await res.json();
+    
+    // Map Binance data to our format
+    for (const asset of cgAssets) {
+      const binanceSymbol = binanceIds[asset.id];
+      const ticker = Array.isArray(data) ? data.find(t => t.symbol === binanceSymbol) : null;
+      if (ticker && ticker.lastPrice) {
+        const price = parseFloat(ticker.lastPrice);
+        const change = parseFloat(ticker.priceChangePercent || 0);
+        out[asset.id] = { price: price, change: change, error: false };
+        console.log('✅ Binance:', asset.id, '=', price, '(+' + change.toFixed(2) + '%)');
       } else {
-        out[a.id] = { error: true };
+        out[asset.id] = { error: true };
+        console.warn('⚠️ No Binance data for', asset.id);
       }
-    } catch (e) {
-      console.warn(`CoinGecko fetch failed for ${a.cgId}:`, e.message);
+    }
+  } catch (e) {
+    console.warn('Binance fetch failed:', e.message, '- using fallbacks');
+    // Set all crypto to error state
+    for (const a of cgAssets) {
       out[a.id] = { error: true };
     }
   }
+  
   return out;
 }
 
