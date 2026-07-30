@@ -252,7 +252,106 @@ function formatPrice(id, price) {
   return price >= 1000 ? price.toLocaleString(undefined, {maximumFractionDigits: 2}) : price.toFixed(2);
 }
 
-const actionColors = { BUY: "#10B981", SELL: "#EF4444", HOLD: "#F59E0B" };
+// ============================================================
+// QUICK TRADE (one-click Long/Short for gold scalping)
+// ============================================================
+function quickTrade(direction) {
+  var a = getAsset(state.asset);
+  var price = getPrice(state.asset);
+  var slPips = direction === 'LONG' ? 40 : 40;
+  var tp1 = direction === 'LONG' ? price * 1.005 : price * 0.995;
+  var tp2 = direction === 'LONG' ? price * 1.012 : price * 0.988;
+  var tp3 = direction === 'LONG' ? price * 1.020 : price * 0.980;
+  var result = {
+    id: Date.now(),
+    timestamp: Date.now(),
+    asset: a.label,
+    direction: direction,
+    entry: price,
+    slPips: slPips,
+    TP1: tp1,
+    TP2: tp2,
+    TP3: tp3,
+    status: 'open',
+    notes: 'One-click quick trade ' + direction,
+    pnl: 0
+  };
+  if (typeof quickTradeState !== 'undefined') {
+    quickTradeState.trades.push(result);
+    saveTradesToStorage();
+  } else {
+    (window._quickTrades = window._quickTrades || []).push(result);
+  }
+  showQuickTradeResult(direction, result);
+}
+
+function showQuickTradeResult(direction, result) {
+  var el = document.getElementById('quickTradeResult');
+  if (!el) return;
+  var isUp = direction === 'LONG';
+  el.style.display = 'block';
+  el.style.background = isUp ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)';
+  el.style.border = '1px solid ' + (isUp ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)');
+  el.style.borderRadius = '10px';
+  el.style.padding = '12px';
+  el.style.marginTop = '8px';
+  el.innerHTML =
+    '<div style="font-size:11px;font-weight:700;color:' + (isUp ? '#10B981' : '#EF4444') + ';">' +
+    (direction === 'LONG' ? 'QUICK LONG TRADE SET' : 'QUICK SHORT TRADE SET') + '</div>' +
+    '<div style="font-size:10px;color:#94A3B8;margin-top:4px;">' +
+    'Entry: ' + result.entry.toFixed(2) + ' | SL: ' + result.slPips + ' pips | ' +
+    'TP1: ' + result.TP1.toFixed(2) + ' | TP2: ' + result.TP2.toFixed(2) + ' | TP3: ' + result.TP3.toFixed(2) +
+    '</div>' +
+    '<div style="font-size:10px;color:#475569;margin-top:4px;">Status: <span style="color:#F59E0B;">OPEN</span> - Watch TP1/TP2/TP3</div>' +
+    '<div style="font-size:9px;color:#475569;margin-top:4px;">Check trade log on AURUM ENGINE page for full details.</div>';
+  setTimeout(function() { el.style.display = 'none'; }, 12000);
+}
+
+// ============================================================
+// PROFIT / LOSS EXAMPLE CALCULATOR (for laymen)
+// ============================================================
+function calcExamplePnL() {
+  var assetEl = document.getElementById('pnlAssetSelect');
+  var dirEl = document.getElementById('pnlDirectionSelect');
+  var lotEl = document.getElementById('pnlLotSize');
+  var slEl = document.getElementById('pnlSLPips');
+  var tpEl = document.getElementById('pnlTPPips');
+  if (!assetEl || !dirEl || !lotEl || !slEl || !tpEl) return;
+
+  var assetId = assetEl.value;
+  var direction = dirEl.value;
+  var lotSize = parseFloat(lotEl.value) || 0.01;
+  var slPipsVal = parseFloat(slEl.value) || 40;
+  var tpPipsVal = parseFloat(tpEl.value) || 80;
+  var price = assetId === 'gold' ? 4096 : assetId === 'btc' ? 110000 : assetId === 'eth' ? 3800 : 100;
+  var pipValue = assetId === 'gold' ? 100 : assetId === 'btc' ? 0.01 : assetId === 'eth' ? 0.1 : 0.10;
+  var riskUSD = lotSize * slPipsVal * pipValue;
+  var rewardUSD = lotSize * tpPipsVal * pipValue;
+  var rr = tpPipsVal / slPipsVal;
+  var brBreakEven = (100 / (1 + rr)).toFixed(1);
+  var el = document.getElementById('pnlResult');
+  if (el) {
+    el.style.display = 'block';
+    el.style.background = 'rgba(13,20,33,0.9)';
+    el.style.borderRadius = '10px';
+    el.style.padding = '12px';
+    el.innerHTML =
+      '<div style="font-size:10px;font-weight:700;color:#F59E0B;margin-bottom:8px;">Example P&L Scenario</div>' +
+      '<div style="font-size:10px;color:#CBD5E1;line-height:1.8;">' +
+      '<strong>Direction:</strong> ' + direction + '<br>' +
+      '<strong>Asset:</strong> ' + assetId + '<br>' +
+      '<strong>Lot Size:</strong> ' + lotSize + '<br>' +
+      '<strong>Entry Price:</strong> $' + price.toLocaleString() + '<br>' +
+      '<strong>Stop Loss:</strong> ' + slPipsVal + ' pips ($' + riskUSD.toFixed(2) + ' risk)<br>' +
+      '<strong>Take Profit:</strong> ' + tpPipsVal + ' pips ($' + rewardUSD.toFixed(2) + ' reward)<br>' +
+      '<strong>Risk/Reward:</strong> 1:' + rr.toFixed(1) + '<br>' +
+      '<strong>Win Rate Needed to Break Even:</strong> ' + brBreakEven + '%<br>' +
+      '<span style="color:' + (direction === 'LONG' ? '#10B981' : '#EF4444') + ';">' +
+      (direction === 'LONG' ? 'Price goes UP to hit TP = +$' + rewardUSD.toFixed(2) + ' profit' : 'Price goes DOWN to hit TP = +$' + rewardUSD.toFixed(2) + ' profit') +
+      '</span></div>';
+  }
+}
+
 const confidenceColors = { HIGH: "#10B981", MEDIUM: "#F59E0B", LOW: "#EF4444" };
 
 // ============================================================
@@ -612,6 +711,44 @@ function esc(str) {
   return div.innerHTML;
 }
 
+
+
+  // ============================================================
+  // QUICK TRADE UI (inserted into render)
+  // ============================================================
+  const quickTradeHTML = `
+    <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:14px;margin-bottom:10px;">
+      <div style="font-size:10px;font-weight:700;color:#f59e0b;margin-bottom:8px;text-transform:uppercase;">One-Click Quick Trade</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <button id="qtLongBtn" style="flex:1;background:linear-gradient(135deg,#10B981,#059669);border:none;border-radius:8px;padding:10px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">LONG</button>
+        <button id="qtShortBtn" style="flex:1;background:linear-gradient(135deg,#EF4444,#DC2626);border:none;border-radius:8px;padding:10px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">SHORT</button>
+      </div>
+      <div id="quickTradeResult" style="display:none;"></div>
+    </div>
+    <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:14px;margin-bottom:10px;">
+      <div style="font-size:10px;font-weight:700;color:#f59e0b;margin-bottom:8px;text-transform:uppercase;">P/L Example Calculator</div>
+      <div style="display:flex;gap:6px;margin-bottom:6px;">
+        <select id="pnlAssetSelect" style="flex:2;background:rgba(7,9,15,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px;color:#e2e8f0;font-size:11px;">
+          <option value="gold" selected>Gold (XAUUSD)</option>
+          <option value="btc">Bitcoin (BTCUSD)</option>
+          <option value="eth">Ethereum (ETHUSD)</option>
+        </select>
+        <select id="pnlDirectionSelect" style="flex:1;background:rgba(7,9,15,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px;color:#e2e8f0;font-size:11px;">
+          <option value="LONG">LONG</option>
+          <option value="SHORT">SHORT</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:6px;">
+        <span style="font-size:9px;color:#475569;flex:1;">Lot Size</span>
+        <input id="pnlLotSize" type="number" step="0.01" value="0.01" style="flex:1;background:rgba(7,9,15,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 6px;color:#e2e8f0;font-size:11px;width:60px;" />
+        <span style="font-size:9px;color:#475569;flex:1;">SL pips</span>
+        <input id="pnlSLPips" type="number" value="40" style="flex:1;background:rgba(7,9,15,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 6px;color:#e2e8f0;font-size:11px;width:60px;" />
+        <span style="font-size:9px;color:#475569;flex:1;">TP pips</span>
+        <input id="pnlTPPips" type="number" value="80" style="flex:1;background:rgba(7,9,15,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 6px;color:#e2e8f0;font-size:11px;width:60px;" />
+      </div>
+      <button id="pnlCalcBtn" style="width:100%;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);border-radius:6px;padding:6px;color:#f59e0b;font-size:10px;font-weight:700;cursor:pointer;">Calculate Example P&L</button>
+      <div id="pnlResult" style="display:none;margin-top:8px;"></div>
+    </div>`;
 function render() {
   const root = document.getElementById("root");
   const a = getAsset(state.asset);
