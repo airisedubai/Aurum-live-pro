@@ -10,6 +10,8 @@ AURUM PRO — Live Gold & Crypto Trading Dashboard for Dubai traders.
 - 📊 ATR volatility-based position sizing
 - 📋 Session-persistent trade log (survives page reload)
 
+- 📚 [Strategy Reference Guide](strategies.html) — trading strategies, tools, and Claude AI examples
+
 ## Quick Start
 Open `index.html` in a browser. No build step or server required.
 
