@@ -327,54 +327,88 @@ const confidenceColors = { HIGH: "#10B981", MEDIUM: "#F59E0B", LOW: "#EF4444" };
 // LIVE PRICE FETCHING
 // ============================================================
 async function fetchCoinGeckoPrices() {
-  const ids = ASSETS.filter(a => a.source === "coingecko").map(a => a.cgId).join(",");
-  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("CoinGecko HTTP " + res.status);
-  const json = await res.json();
+  const cgAssets = ASSETS.filter(a => a.source === "coingecko");
   const out = {};
-  ASSETS.filter(a => a.source === "coingecko").forEach(a => {
-    const d = json[a.cgId];
-    if (d && typeof d.usd === "number") {
-      out[a.id] = { price: d.usd, change: d.usd_24h_change ?? 0, error: false };
-    } else {
+  
+  for (const a of cgAssets) {
+    try {
+      const url = `https://api.coingecko.com/api/v3/simple/price?ids=${a.cgId}&vs_currencies=usd&include_24hr_change=true`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        console.warn(`CoinGecko HTTP ${res.status} for ${a.cgId}`);
+        out[a.id] = { error: true };
+        continue;
+      }
+      const json = await res.json();
+      const d = json[a.cgId];
+      if (d && typeof d.usd === "number") {
+        out[a.id] = { price: d.usd, change: d.usd_24h_change ?? 0, error: false };
+      } else {
+        out[a.id] = { error: true };
+      }
+    } catch (e) {
+      console.warn(`CoinGecko fetch failed for ${a.cgId}:`, e.message);
       out[a.id] = { error: true };
     }
-  });
+  }
   return out;
 }
 
 async function fetchTwelveDataPrices() {
-  const symbols = ASSETS.filter(a => a.source === "twelvedata").map(a => a.tdSymbol).join(",");
-  const url = `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbols)}&apikey=${TWELVEDATA_API_KEY}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("TwelveData HTTP " + res.status);
-  const json = await res.json();
-  const bySymbol = json.symbol ? { [json.symbol]: json } : json;
   const out = {};
-  ASSETS.filter(a => a.source === "twelvedata").forEach(a => {
-    const d = bySymbol[a.tdSymbol];
-    if (d && !d.code && typeof d.close !== "undefined") {
-      out[a.id] = { price: parseFloat(d.close), change: parseFloat(d.percent_change ?? 0), error: false };
-    } else {
+  const tdAssets = ASSETS.filter(a => a.source === "twelvedata");
+  
+  // Free tier only allows one symbol per request - fetch individually
+  for (const a of tdAssets) {
+    try {
+      const url = `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(a.tdSymbol)}&apikey=${TWELVEDATA_API_KEY}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        console.warn(`TwelveData HTTP ${res.status} for ${a.tdSymbol}`);
+        out[a.id] = { error: true };
+        continue;
+      }
+      const json = await res.json();
+      if (json.code || !json.close) {
+        console.warn(`TwelveData error for ${a.tdSymbol}:`, json.message || 'No close price');
+        out[a.id] = { error: true };
+        continue;
+      }
+      out[a.id] = { 
+        price: parseFloat(json.close), 
+        change: parseFloat(json.percent_change ?? 0), 
+        error: false 
+      };
+    } catch (e) {
+      console.warn(`TwelveData fetch failed for ${a.tdSymbol}:`, e.message);
       out[a.id] = { error: true };
     }
-  });
+  }
   return out;
 }
 
 async function fetchAllPrices() {
   const results = {};
+  
+  // Fetch CoinGecko prices (crypto)
   try {
-    Object.assign(results, await fetchCoinGeckoPrices());
+    const cgResults = await fetchCoinGeckoPrices();
+    Object.assign(results, cgResults);
+    console.log('✅ CoinGecko prices fetched:', Object.keys(cgResults).length, 'assets');
   } catch (e) {
     console.warn("CoinGecko fetch failed:", e.message);
   }
+  
+  // Fetch TwelveData prices (forex/commodities)
   try {
-    Object.assign(results, await fetchTwelveDataPrices());
+    const tdResults = await fetchTwelveDataPrices();
+    Object.assign(results, tdResults);
+    console.log('✅ TwelveData prices fetched:', Object.keys(tdResults).length, 'assets');
   } catch (e) {
     console.warn("TwelveData fetch failed:", e.message);
   }
+  
+  console.log('📊 Total prices fetched:', Object.keys(results).length, '/', ASSETS.length);
   return results;
 }
 
