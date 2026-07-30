@@ -53,12 +53,73 @@
 </p>
 
 <div class="nav">
+  <a href="#layman">🧸 For Laymen</a>
   <a href="#indicators">Indicators</a>
   <a href="#strategies">Strategies</a>
   <a href="#tools">Tools</a>
   <a href="#backtesting">Backtesting</a>
   <a href="#risk">Risk</a>
+  <a href="#quicktrade">⚡ Quick Trade</a>
   <a href="#dashboard">Dashboard Guide</a>
+</div>
+
+<h2 id="layman" style="color:#f59e0b;font-size:14px;margin-top:20px;margin-bottom:10px;">🧸 Strategy for Laymen (Simple English)</h2>
+<p style="font-size:11px;color:#64748b;margin-bottom:12px;">No jargon. No complex terms. Just simple explanations anyone can understand.</p>
+
+<div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 20px;">
+  <div class="card" style="border-left: 3px solid #f59e0b;">
+    <h3 style="color: #f59e0b; font-size: 13px; margin-bottom: 8px;">1. The "Rubber Band" Trick</h3>
+    <div style="font-size: 10px; color: #94a3b8; margin-bottom: 8px;">(Mean Reversion Strategy)</div>
+    <p style="font-size: 10px; color: #cbd5e1; line-height: 1.6;">
+      Imagine a rubber band. If you stretch it too far up, it <strong>snap backs down</strong>. 
+      If you pull it too far down, it <strong>snap backs up</strong>.
+    </p>
+    <ul style="font-size: 9px; color: #94a3b8; padding-left: 14px; margin-top: 8px; line-height: 1.6;">
+      <li><strong>Price goes way up too fast?</strong> Don't buy! Wait for snap back (Sell).</li>
+      <li><strong>Price crashes way down?</strong> Don't panic sell! Wait for snap back (Buy).</li>
+      <li><strong>Rule:</strong> Never chase price when rubber band is stretched tight.</li>
+    </ul>
+  </div>
+
+  <div class="card" style="border-left: 3px solid #3b82f6;">
+    <h3 style="color: #3b82f6; font-size: 13px; margin-bottom: 8px;">2. The "River Flow"</h3>
+    <div style="font-size: 10px; color: #94a3b8; margin-bottom: 8px;">(Trend Following Strategy)</div>
+    <p style="font-size: 10px; color: #cbd5e1; line-height: 1.6;">
+      Imagine you're in a boat on a river. It's much easier to swim <strong>with the current</strong> than against it.
+    </p>
+    <ul style="font-size: 9px; color: #94a3b8; padding-left: 14px; margin-top: 8px; line-height: 1.6;">
+      <li><strong>Uptrend (river flowing up):</strong> Only look for Buy. Ignore small dips.</li>
+      <li><strong>Downtrend (river flowing down):</strong> Only look for Sell. Ignore small bounces.</li>
+      <li><strong>Rule:</strong> "The Trend is your Friend." Don't try to stop the river.</li>
+    </ul>
+  </div>
+
+  <div class="card" style="border-left: 3px solid #10b981;">
+    <h3 style="color: #10b981; font-size: 13px; margin-bottom: 8px;">3. The "Floor and Ceiling"</h3>
+    <div style="font-size: 10px; color: #94a3b8; margin-bottom: 8px;">(Support & Resistance)</div>
+    <p style="font-size: 10px; color: #cbd5e1; line-height: 1.6;">
+      Imagine a ball bouncing in a room. It hits the <strong>Floor</strong> and bounces up. 
+      It hits the <strong>Ceiling</strong> and falls down.
+    </p>
+    <ul style="font-size: 9px; color: #94a3b8; padding-left: 14px; margin-top: 8px; line-height: 1.6;">
+      <li><strong>Floor (Support):</strong> Price level where buyers wait. Good place to Buy.</li>
+      <li><strong>Ceiling (Resistance):</strong> Price level where sellers wait. Good place to Sell.</li>
+      <li><strong>Breakout:</strong> If ball smashes through ceiling, ceiling becomes new floor!</li>
+    </ul>
+  </div>
+
+  <div class="card" style="border-left: 3px solid #ef4444;">
+    <h3 style="color: #ef4444; font-size: 13px; margin-bottom: 8px;">4. The "Traffic Light"</h3>
+    <div style="font-size: 10px; color: #94a3b8; margin-bottom: 8px;">(Risk Management)</div>
+    <p style="font-size: 10px; color: #cbd5e1; line-height: 1.6;">
+      Trading without rules is like driving without traffic lights. You will crash.
+    </p>
+    <ul style="font-size: 9px; color: #94a3b8; padding-left: 14px; margin-top: 8px; line-height: 1.6;">
+      <li><span style="color: #ef4444;">🔴 Red Light (Stop Loss):</span> Max money you'll lose. If hit, MUST exit. No hoping.</li>
+      <li><span style="color: #10b981;">🟢 Green Light (Take Profit):</span> Your goal. Hit it, take money, celebrate.</li>
+      <li><span style="color: #f59e0b;">🟡 Yellow Light (Caution):</span> Big news (CPI/NFP). Stay out until it passes.</li>
+    </ul>
+  </div>
 </div>
 
 <h2 id="indicators">📊 Technical Indicators</h2>
@@ -312,6 +373,221 @@
     <li>No trading during <strong>high-impact news</strong> (NFP, FOMC, CPI) unless you have a specific strategy for it</li>
   </ul>
 </div>
+
+<div class="card">
+  <h3>Risk Management Rules</h3>
+  <ul style="font-size:11px;color:#94A3B8;line-height:1.8;padding-left:16px;">
+    <li>Never risk more than <strong>0.5–1% of equity per trade</strong></li>
+    <li>Maximum <strong>3 concurrent positions</strong></li>
+    <li>Stop loss is <strong>never widened</strong> — if hit, exit and reassess</li>
+    <li>Take profits at TP1 + TP2 first, then move SL to breakeven</li>
+    <li>No trading during <strong>high-impact news</strong> (NFP, FOMC, CPI) unless you have a specific strategy for it</li>
+  </ul>
+</div>
+
+<!-- Quick Trade Calculator with P&L Scenarios -->
+<h2 id="quicktrade">⚡ Quick Trade Calculator (P&L Scenarios)</h2>
+<p style="font-size:11px;color:#64748b;margin-bottom:12px;">Interactive examples showing how profit and loss work in real trades. Enter your numbers to see potential outcomes.</p>
+
+<div class="card mb-6">
+  <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+    <!-- Input Section -->
+    <div style="background: rgba(245,158,11,0.05); padding: 16px; border-radius: 8px; border: 1px solid rgba(245,158,11,0.15);">
+      <h3 style="color: #f59e0b; font-size: 13px; margin-bottom: 12px;">📝 Your Trade Setup</h3>
+      
+      <label style="font-size: 10px; color: #94a3b8; display: block; margin-bottom: 4px;">Entry Price ($)</label>
+      <input type="number" id="qt-entry" value="4096" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #1e293b; border-radius: 6px; color: #e2e8f0; font-size: 12px; margin-bottom: 12px;" oninput="calculatePL()">
+      
+      <label style="font-size: 10px; color: #94a3b8; display: block; margin-bottom: 4px;">Position Size (oz)</label>
+      <input type="number" id="qt-size" value="10" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #1e293b; border-radius: 6px; color: #e2e8f0; font-size: 12px; margin-bottom: 12px;" oninput="calculatePL()">
+      
+      <label style="font-size: 10px; color: #94a3b8; display: block; margin-bottom: 4px;">Exit Price ($)</label>
+      <input type="number" id="qt-exit" value="4120" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #1e293b; border-radius: 6px; color: #e2e8f0; font-size: 12px; margin-bottom: 12px;" oninput="calculatePL()">
+      
+      <label style="font-size: 10px; color: #94a3b8; display: block; margin-bottom: 4px;">Trade Direction</label>
+      <select id="qt-direction" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #1e293b; border-radius: 6px; color: #e2e8f0; font-size: 12px; margin-bottom: 12px;" onchange="calculatePL()">
+        <option value="long">LONG (Buy)</option>
+        <option value="short">SHORT (Sell)</option>
+      </select>
+      
+      <label style="font-size: 10px; color: #94a3b8; display: block; margin-bottom: 4px;">Leverage</label>
+      <select id="qt-leverage" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #1e293b; border-radius: 6px; color: #e2e8f0; font-size: 12px;" onchange="calculatePL()">
+        <option value="1">1x (No Leverage)</option>
+        <option value="5">5x</option>
+        <option value="10">10x</option>
+        <option value="20">20x</option>
+        <option value="50">50x</option>
+        <option value="100">100x</option>
+      </select>
+    </div>
+    
+    <!-- Results Section -->
+    <div style="background: rgba(16,185,129,0.05); padding: 16px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.15);">
+      <h3 style="color: #10b981; font-size: 13px; margin-bottom: 12px;">💰 Profit & Loss Result</h3>
+      
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 10px; color: #94a3b8; margin-bottom: 4px;">Price Movement</div>
+        <div id="qt-price-move" style="font-size: 18px; font-weight: bold; color: #10b981;">+$24.00 (+0.59%)</div>
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 10px; color: #94a3b8; margin-bottom: 4px;">Profit/Loss (USD)</div>
+        <div id="qt-pl-usd" style="font-size: 24px; font-weight: bold; color: #10b981;">+$240.00</div>
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 10px; color: #94a3b8; margin-bottom: 4px;">Return on Investment</div>
+        <div id="qt-roi" style="font-size: 18px; font-weight: bold; color: #10b981;">+5.86%</div>
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 10px; color: #94a3b8; margin-bottom: 4px;">With Leverage (<span id="qt-lev-display">1x</span>)</div>
+        <div id="qt-leveraged-roi" style="font-size: 18px; font-weight: bold; color: #10b981;">+5.86%</div>
+      </div>
+      
+      <div style="padding: 12px; background: rgba(0,0,0,0.3); border-radius: 6px; margin-top: 16px;">
+        <div style="font-size: 9px; color: #64748b; margin-bottom: 8px;">💡 What This Means:</div>
+        <p id="qt-explanation" style="font-size: 10px; color: #cbd5e1; line-height: 1.6;">
+          You bought 10 oz of gold at $4,096 and sold at $4,120. The price increased by $24, giving you a profit of $240. 
+          This is a 5.86% return on your capital.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- P&L Scenario Examples -->
+<div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 16px;">
+  <!-- Winning Trade Example -->
+  <div class="card" style="border-left: 3px solid #10b981;">
+    <h3 style="color: #10b981; font-size: 13px; margin-bottom: 8px;">✅ Winning Trade Scenario</h3>
+    <div style="font-size: 10px; color: #94a3b8; margin-bottom: 12px;">LONG position with proper risk management</div>
+    
+    <table style="font-size: 11px;">
+      <tr><td style="color: #64748b;">Entry:</td><td>$4,080</td></tr>
+      <tr><td style="color: #64748b;">Target:</td><td>$4,120</td></tr>
+      <tr><td style="color: #64748b;">Stop Loss:</td><td>$4,060</td></tr>
+      <tr><td style="color: #64748b;">Size:</td><td>10 oz</td></tr>
+      <tr style="border-top: 1px solid rgba(255,255,255,0.1);">
+        <td style="color: #10b981; font-weight: bold;">Profit:</td>
+        <td style="color: #10b981; font-weight: bold;">+$400 (R:R = 2:1)</td>
+      </tr>
+    </table>
+    
+    <p style="font-size: 10px; color: #64748b; margin-top: 12px; line-height: 1.5;">
+      <strong>Lesson:</strong> Risk $200 to make $400. Even if you win only 50% of trades, you're profitable because winners are bigger than losers.
+    </p>
+  </div>
+  
+  <!-- Losing Trade Example -->
+  <div class="card" style="border-left: 3px solid #ef4444;">
+    <h3 style="color: #ef4444; font-size: 13px; margin-bottom: 8px;">❌ Losing Trade Scenario</h3>
+    <div style="font-size: 10px; color: #94a3b8; margin-bottom: 12px;">STOP LOSS hit - but you survive to trade another day</div>
+    
+    <table style="font-size: 11px;">
+      <tr><td style="color: #64748b;">Entry:</td><td>$4,080</td></tr>
+      <tr><td style="color: #64748b;">Target:</td><td>$4,120</td></tr>
+      <tr><td style="color: #64748b;">Stop Loss:</td><td>$4,060</td></tr>
+      <tr><td style="color: #64748b;">Size:</td><td>10 oz</td></tr>
+      <tr style="border-top: 1px solid rgba(255,255,255,0.1);">
+        <td style="color: #ef4444; font-weight: bold;">Loss:</td>
+        <td style="color: #ef4444; font-weight: bold;">-$200 (-0.5% of $40k account)</td>
+      </tr>
+    </table>
+    
+    <p style="font-size: 10px; color: #64748b; margin-top: 12px; line-height: 1.5;">
+      <strong>Lesson:</strong> Small losses are part of trading. By risking only 0.5% per trade, you can survive 200 consecutive losses. This is why stop losses save your career.
+    </p>
+  </div>
+  
+  <!-- Disaster Scenario (No Stop Loss) -->
+  <div class="card" style="border-left: 3px solid #f59e0b;">
+    <h3 style="color: #f59e0b; font-size: 13px; margin-bottom: 8px;">⚠️ Disaster Scenario (No Stop Loss)</h3>
+    <div style="font-size: 10px; color: #94a3b8; margin-bottom: 12px;">What happens when you DON'T use a stop loss</div>
+    
+    <table style="font-size: 11px;">
+      <tr><td style="color: #64748b;">Entry:</td><td>$4,080</td></tr>
+      <tr><td style="color: #64748b;">Price crashes to:</td><td>$3,900</td></tr>
+      <tr><td style="color: #64748b;">Size:</td><td>10 oz</td></tr>
+      <tr><td style="color: #64748b;">Hope & pray:</td><td>"It'll come back..."</td></tr>
+      <tr style="border-top: 1px solid rgba(255,255,255,0.1);">
+        <td style="color: #ef4444; font-weight: bold;">Loss:</td>
+        <td style="color: #ef4444; font-weight: bold;">-$1,800 (-4.5% of account!)</td>
+      </tr>
+    </table>
+    
+    <p style="font-size: 10px; color: #64748b; margin-top: 12px; line-height: 1.5;">
+      <strong>Lesson:</strong> One trade without a stop loss can wipe out 9 winning trades. ALWAYS use a stop loss. No exceptions. This is not advice — it's survival.
+    </p>
+  </div>
+</div>
+
+<script>
+function calculatePL() {
+  const entry = parseFloat(document.getElementById('qt-entry').value) || 0;
+  const size = parseFloat(document.getElementById('qt-size').value) || 0;
+  const exit = parseFloat(document.getElementById('qt-exit').value) || 0;
+  const direction = document.getElementById('qt-direction').value;
+  const leverage = parseFloat(document.getElementById('qt-leverage').value) || 1;
+  
+  if (!entry || !size || !exit) return;
+  
+  // Calculate price movement
+  const priceDiff = exit - entry;
+  const priceMovePercent = (priceDiff / entry) * 100;
+  
+  // Calculate P&L based on direction
+  let plUSD;
+  if (direction === 'long') {
+    plUSD = priceDiff * size;
+  } else {
+    plUSD = -priceDiff * size;
+  }
+  
+  // Calculate ROI (without leverage)
+  const investment = entry * size;
+  const roi = (plUSD / investment) * 100;
+  
+  // Calculate leveraged ROI
+  const leveragedROI = roi * leverage;
+  
+  // Update display
+  const isProfit = plUSD >= 0;
+  const colorClass = isProfit ? '#10b981' : '#ef4444';
+  const sign = isProfit ? '+' : '';
+  
+  document.getElementById('qt-price-move').innerHTML = `${sign}$${priceDiff.toFixed(2)} (${sign}${priceMovePercent.toFixed(2)}%)`;
+  document.getElementById('qt-price-move').style.color = priceDiff >= 0 ? '#10b981' : '#ef4444';
+  
+  document.getElementById('qt-pl-usd').innerHTML = `${sign}$${plUSD.toFixed(2)}`;
+  document.getElementById('qt-pl-usd').style.color = colorClass;
+  
+  document.getElementById('qt-roi').innerHTML = `${sign}${roi.toFixed(2)}%`;
+  document.getElementById('qt-roi').style.color = colorClass;
+  
+  document.getElementById('qt-lev-display').textContent = leverage + 'x';
+  document.getElementById('qt-leveraged-roi').innerHTML = `${sign}${leveragedROI.toFixed(2)}%`;
+  document.getElementById('qt-leveraged-roi').style.color = colorClass;
+  
+  // Update explanation
+  const dirText = direction === 'long' ? 'bought' : 'sold';
+  const moveText = priceDiff >= 0 ? 'increased' : 'decreased';
+  const resultText = isProfit ? 'profit' : 'loss';
+  
+  document.getElementById('qt-explanation').innerHTML = `
+    You ${dirText} ${size} oz of gold at $${entry.toFixed(2)} and exited at $${exit.toFixed(2)}. 
+    The price ${moveText} by $${Math.abs(priceDiff).toFixed(2)}, giving you a ${sign}$${Math.abs(plUSD).toFixed(2)} ${resultText}. 
+    This is a ${sign}${Math.abs(roi).toFixed(2)}% return on your capital. 
+    With ${leverage}x leverage, your effective return becomes ${sign}${Math.abs(leveragedROI).toFixed(2)}%.
+    <br><br>
+    <strong style="color: ${isProfit ? '#10b981' : '#ef4444'};">⚠️ Warning:</strong> Leverage amplifies both gains AND losses. 
+    A 10% move against you with 10x leverage = -100% loss (liquidation).
+  `;
+}
+
+// Initialize on page load
+calculatePL();
+</script>
 
 <div class="footer">
   <p>AURUM PRO Dashboard — Strategy Reference Guide | Strategies are from paperswithbacktest.com and academic literature</p>
