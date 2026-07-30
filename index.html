@@ -72,9 +72,147 @@ window.addEventListener("DOMContentLoaded", () => {
 const TWELVEDATA_API_KEY = "53ca0f596b344545b65f4384aa2fc6ef";
 const CLAUDE_MODEL = "claude-haiku-4-5-20251001";
 const PRICE_REFRESH_MS = 60000;       // 1 minute price refresh
+const GOLD_REFRESH_MS = 10000;            // 10 second gold refresh for scalping
 const ANALYSIS_REFRESH_MS = 300000;   // 5 minute analysis cache refresh per asset
 const USD_AED = 3.673;
+
+  // ============================================================
+  // TECHNICAL INDICATORS (pure JS — no library needed)
+  // ============================================================
+  function calcEMA(prices, period) {
+    if (prices.length < period) return null;
+    const k = 2 / (period + 1);
+    let ema = prices.slice(0, period).reduce((a, b) => a + b, 0) / period;
+    for (let i = period; i < prices.length; i++) {
+      ema = prices[i] * k + ema * (1 - k);
+    }
+    return ema;
+  }
+
+  function calcRSI(prices, period = 14) {
+    if (prices.length < period + 1) return null;
+    let gains = 0, losses = 0;
+    for (let i = 1; i <= period; i++) {
+      const diff = prices[i] - prices[i - 1];
+      if (diff >= 0) gains += diff; else losses -= diff;
+    }
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    if (avgLoss === 0) return 100;
+    let rs = avgGain / avgLoss;
+    let rsi = 100 - (100 / (1 + rs));
+    for (let i = period + 1; i < prices.length; i++) {
+      const diff = prices[i] - prices[i - 1];
+      const gain = diff > 0 ? diff : 0;
+      const loss = diff < 0 ? -diff : 0;
+      avgGain = (avgGain * (period - 1) + gain) / period;
+      avgLoss = (avgLoss * (period - 1) + loss) / period;
+      if (avgLoss === 0) return 100;
+      rs = avgGain / avgLoss;
+      rsi = 100 - (100 / (1 + rs));
+    }
+    return rsi;
+  }
+
+  async function fetchOhlc(symbol, interval = "1min", outputsize = 30) {
+    const url = "https://api.twelvedata.com/ohlc?symbol=" + encodeURIComponent(symbol) + "&interval=" + interval + "&outputsize=" + outputsize + "&apikey=" + TWELVEDATA_API_KEY;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Ohlc HTTP " + res.status);
+    const json = await res.json();
+    return json.values || [];
+  }
+
+  async function fetchAtr(assetId) {
+    const a = getAsset(assetId);
+    if (a.source !== "twelvedata") return null;
+    try {
+      const ohlc = await fetchOhlc(a.tdSymbol, "1min", 14);
+      if (!ohlc || ohlc.length < 14) return null;
+      const trValues = [];
+      for (let i = 1; i < ohlc.length; i++) {
+        const high = parseFloat(ohlc[i].high);
+        const low = parseFloat(ohlc[i].low);
+        const prevClose = parseFloat(ohlc[i - 1].close);
+        const tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
+        trValues.push(tr);
+      }
+      return trValues.reduce((a, b) => a + b, 0) / trValues.length;
+    } catch (e) { return null; }
+  }
+
+  async function fetchIndicators(assetId) {
+    const a = getAsset(assetId);
+    if (a.source !== "twelvedata") return null;
+    try {
+      const ohlc = await fetchOhlc(a.tdSymbol, "1min", 14);
+      if (!ohlc || ohlc.length < 21) return null;
+      const closes = ohlc.map(o => parseFloat(o.close));
+      const ema9 = calcEMA(closes, 9);
+      const ema21 = calcEMA(closes, 21);
+      const atr = await fetchAtr(assetId);
+      const rsi = calcRSI(closes, 14);
+      const momentum = calcTrendMomentum(closes, 20);
+      const sr = calcSupportResistance(closes, 10);
+      const volRegime = calcVolatilityRegime(closes, atr);
+      return { ema9, ema21, atr, rsi, momentum, supportResistance: sr, volatilityRegime: volRegime };
+    } catch (e) { return null; }
+  }
+
+  // Gold scalping features (inspired by awesome-systematic-trading)
+  function calcTrendMomentum(prices, lookback = 20) {
+    if (prices.length < lookback + 1) return null;
+    const current = prices[prices.length - 1];
+    const past = prices[prices.length - 1 - lookback];
+    const change = ((current - past) / past) * 100;
+    return { change, direction: change > 0 ? "bullish" : change < 0 ? "bearish" : "neutral", strength: Math.min(100, Math.abs(change) * 5) };
+  }
+
+  function calcVolatilityRegime(prices, atrCurrent) {
+    if (prices.length < 21) return "unknown";
+    const recent = prices.slice(-20);
+    const ranges = [];
+    for (let i = 1; i < recent.length; i++) {
+      ranges.push(Math.abs(recent[i] - recent[i - 1]));
+    }
+    const avgRange = ranges.reduce((a, b) => a + b, 0) / ranges.length;
+    if (avgRange === 0) return "low";
+    const ratio = atrCurrent / avgRange;
+    if (ratio > 1.5) return "high";
+    if (ratio > 0.8) return "medium";
+    return "low";
+  }
+
+  function calcSupportResistance(prices, lookback = 10) {
+    if (prices.length < lookback) return null;
+    const recent = prices.slice(-lookback);
+    const high = Math.max(...recent);
+    const low = Math.min(...recent);
+    const current = prices[prices.length - 1];
+    return { resistance: high, support: low, nearestS: current - low < high - current ? low : high, nearestR: current - low < high - current ? high : low };
+  }
+
+  function calcMTFAlignment(ema9, ema21, ema50) {
+    if (ema9 == null || ema21 == null || ema50 == null) return "unknown";
+    if (ema9 > ema21 && ema21 > ema50) return "strong_bull";
+    if (ema9 > ema21 && ema21 < ema50) return "contradiction";
+    if (ema9 < ema21 && ema21 < ema50) return "strong_bear";
+    if (ema9 < ema21 && ema21 > ema50) return "contradiction";
+    return "flat";
+  }
 const LS_KEY_STORAGE = "aurum_pro_anthropic_key";
+
+  // ============================================================
+  // PERSISTENCE (sessionStorage for trade log)
+  // ============================================================
+  function saveTradesToStorage() {
+    try { sessionStorage.setItem("aurum_trades", JSON.stringify(aeState.trades)); } catch (e) {}
+  }
+  function loadTradesFromStorage() {
+    try {
+      const stored = sessionStorage.getItem("aurum_trades");
+      if (stored) aeState.trades = JSON.parse(stored);
+    } catch (e) {}
+  }
 
 function getStoredApiKey() {
   try { return localStorage.getItem(LS_KEY_STORAGE) || ""; } catch (e) { return ""; }
@@ -783,5 +921,7 @@ window.addEventListener("load", async () => {
 
   setInterval(initPrices, PRICE_REFRESH_MS);
   setInterval(() => ensureAnalysis(state.asset), ANALYSIS_REFRESH_MS);
+  // Gold-specific rapid refresh for scalping (10s vs 60s for other assets)
+  setInterval(() => { if (state.asset === "gold") initPrices(); }, GOLD_REFRESH_MS);
 });
 </script>
