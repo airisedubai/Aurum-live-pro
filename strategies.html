@@ -39,6 +39,18 @@
 
 <h1>📚 AURUM PRO — Strategy Reference Guide</h1>
 <p style="color:#64748b;font-size:12px;margin-bottom:16px;"><a href="index.html" style="color:#f59e0b;text-decoration:none;font-weight:600;">&larr; Dashboard</a> | <a href="engine.html" style="color:#f59e0b;text-decoration:none;font-weight:600;">Engine</a> | This page describes strategies from the <a href="https://github.com/paperswithbacktest/awesome-systematic-trading" target="_blank">awesome-systematic-trading</a> collection and how they relate to the AURUM PRO dashboard. Use this as a guide to understand what each tool on the dashboard does.</p>
+<h2 style="color:#f59e0b;font-size:14px;margin-top:20px;margin-bottom:10px;">Options Basics for Beginners</h2>
+<p style="font-size:11px;color:#94A3B8;line-height:1.6;margin-bottom:12px;">
+<strong>What are options?</strong> Think of an option like a "coupon" or "ticket" that gives you the right to buy or sell something at a specific price, at a specific time.<br><br>
+<strong>Call Option</strong> - You buy the RIGHT to purchase gold at price X (like a coupon to buy gold even if price goes up). You profit when price goes UP.<br><br>
+<strong>Put Option</strong> - You buy the RIGHT to sell gold at price X (like a coupon to sell gold even if price goes down). You profit when price goes DOWN.<br><br>
+<strong>Premium</strong> - The price you pay to buy the option (like buying a ticket). This is your maximum loss.<br><br>
+<strong>Strike Price</strong> - The price X in the option (the price you have the right to buy/sell at).<br><br>
+<strong>Expiry</strong> - When the option ticket expires (you must use it or lose it).<br><br>
+<strong>Example:</strong> Gold is at $4,096. You buy a CALL option for gold at $4,100 strike, paying a $20 premium. If gold goes to $4,200 at expiry, your option is worth $100. You keep $100 - $20 premium = $80 profit (4x return!). If gold stays below $4,100, the option expires worthless - you lose the $20 premium only.<br><br>
+<strong>Key Risk:</strong> Options can expire worthless. Only risk money you can afford to lose. The maximum loss is the premium paid.<br><br>
+<strong>Why use options?</strong> Leverage - control $4,000+ of gold with only $20 premium. Limited risk - worst case you lose the premium only.
+</p>
 
 <div class="nav">
   <a href="#indicators">Indicators</a>

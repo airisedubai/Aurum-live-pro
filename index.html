@@ -740,7 +740,158 @@ function esc(str) {
       </div>
       <div style="display:flex;gap:6px;margin-bottom:6px;">
         <span style="font-size:9px;color:#475569;flex:1;">Lot Size</span>
-        <input id="pnlLotSize" type="number" step="0.01" value="0.01" style="flex:1;background:rgba(7,9,15,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 6px;color:#e2e8f0;font-size:11px;width:60px;" />
+        <input id="pnlLotSize" type="number" step="0.01" value="0.01" style="flex:1;background:rgba(7,9,1
+// ============================================================
+// OPTIONS STRATEGY P&L SCENARIOS
+// ============================================================
+function aeRenderOptionsView() {
+  const hasKey = !!aeGetApiKey();
+  return `
+    <div style="background:rgba(13,20,33,0.9);border-radius:12px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:10px;">Options Strategy P&L Scenarios</div>
+      <div style="font-size:10px;color:#94A3B8;line-height:1.5;margin-bottom:10px;">
+        Options let you control large positions with small upfront cost (premium).
+        Choose a strategy below to see a P&L example, then send it to Claude for AI-powered analysis.
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+        <button data-opt-strategy="call_buy" class="ae-opt-btn" style="padding:6px 10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.2);border-radius:6px;color:#10B981;font-size:10px;font-weight:700;cursor:pointer;">Long Call (bet UP)</button>
+        <button data-opt-strategy="put_buy" class="ae-opt-btn" style="padding:6px 10px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.2);border-radius:6px;color:#EF4444;font-size:10px;font-weight:700;cursor:pointer;">Long Put (bet DOWN)</button>
+        <button data-opt-strategy="covered_call" class="ae-opt-btn" style="padding:6px 10px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);border-radius:6px;color:#f59e0b;font-size:10px;font-weight:700;cursor:pointer;">Covered Call (own gold + sell call)</button>
+        <button data-opt-strategy="iron_condor" class="ae-opt-btn" style="padding:6px 10px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);border-radius:6px;color:#8B5CF6;font-size:10px;font-weight:700;cursor:pointer;">Iron Condor (neutral/range)</button>
+      </div>
+      <div id="aeOptResult" style="display:none;"></div>
+      ${hasKey ? '<button id="aeOptAskClaude" style="width:100%;margin-top:8px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:8px;padding:8px;color:#000;font-size:10px;font-weight:700;cursor:pointer;">Ask Claude AI for Strategy Analysis</button>' : '<div style="font-size:10px;color:#475569;margin-top:8px;">Add Claude API key to analyze options strategies with AI</div>'}
+    </div>`;
+}
+
+function aeShowOptionsScenario(strategy) {
+  const scenarios = {
+    call_buy: {
+      name: 'Long Call (bet price goes UP)',
+      entry: 'Gold at $4,096. You buy a CALL option with $4,100 strike. Premium paid: $20 per contract. Each contract = 100 oz gold.',
+      breakeven: '$4,120 (strike + premium)',
+      best_case: 'Gold hits $4,200 -> option worth $100 -> profit $80 (400% return on $20 invested!)',
+      worst_case: 'Gold stays below $4,100 -> option expires worthless -> loss = $20 premium (max loss)',
+      risk_reward: 'Risk: $20 | Max Reward: Unlimited if gold rises',
+      example_pnl: [
+        { gold_price: '$4,060', option_value: '$0', pnl: '-$20 (premium lost)' },
+        { gold_price: '$4,100', option_value: '$0', pnl: '-$20 (at breakeven)' },
+        { gold_price: '$4,150', option_value: '$50', pnl: '+$30 (50% return)' },
+        { gold_price: '$4,200', option_value: '$100', pnl: '+$80 (400% return)' },
+        { gold_price: '$4,300', option_value: '$200', pnl: '+$180 (900% return)' }
+      ]
+    },
+    put_buy: {
+      name: 'Long Put (bet price goes DOWN)',
+      entry: 'Gold at $4,096. You buy a PUT option with $4,090 strike. Premium paid: $18 per contract.',
+      breakeven: '$4,072 (strike - premium)',
+      best_case: 'Gold drops to $4,000 -> option worth $90 -> profit $72 (400% return on $18)',
+      worst_case: 'Gold stays above $4,090 -> option expires worthless -> loss = $18 premium',
+      risk_reward: 'Risk: $18 | Max Reward: Option worth increases as gold drops',
+      example_pnl: [
+        { gold_price: '$4,120', option_value: '$0', pnl: '-$18 (premium lost)' },
+        { gold_price: '$4,090', option_value: '$0', pnl: '-$18 (at breakeven)' },
+        { gold_price: '$4,050', option_value: '$40', pnl: '+$22 (122% return)' },
+        { gold_price: '$4,000', option_value: '$90', pnl: '+$72 (400% return)' },
+        { gold_price: '$3,950', option_value: '$140', pnl: '+$122 (678% return)' }
+      ]
+    },
+    covered_call: {
+      name: 'Covered Call (own gold, sell call to earn extra)',
+      entry: 'You own 1 oz gold at $4,096. You SELL a call with $4,150 strike for $15 premium.',
+      breakeven: '$4,081 (entry - premium received)',
+      best_case: 'Gold stays below $4,150 -> you keep the $15 premium + your gold',
+      worst_case: 'Gold drops to $3,900 -> you lose $196 on gold but keep $15 premium = net -$181',
+      risk_reward: 'Risk: limited gold downside | Max Profit: capped at $54 ($15 premium + $39 gold appreciation to strike)',
+      example_pnl: [
+        { gold_price: '$3,950', option_value: '$0', pnl: '-$131 ($196 gold loss - $15 premium earned)' },
+        { gold_price: '$4,050', option_value: '$0', pnl: '-$31 ($46 gold loss + premium)' },
+        { gold_price: '$4,100', option_value: '$0', pnl: '+$19 (small gold gain + premium)' },
+        { gold_price: '$4,150', option_value: '$0', pnl: '+$69 (gold hits strike + premium)' },
+        { gold_price: '$4,200', option_value: '$0', pnl: '+$69 (capped at strike, keep premium)' }
+      ]
+    },
+    iron_condor: {
+      name: 'Iron Condor (profit from gold staying in a range)',
+      entry: 'You sell a put at $4,050 (get $10) and call at $4,150 (get $10). You buy a put at $4,030 ($5) and call at $4,170 ($5). Net credit: $10.',
+      breakeven: '$4,060 (low) and $4,140 (high)',
+      best_case: 'Gold stays between $4,050-$4,150 -> both options expire worthless -> you keep $10 premium',
+      worst_case: 'Gold breaks out above $4,170 or below $4,030 -> losses on broken wing',
+      risk_reward: 'Max profit: $10 (if gold stays in range) | Max loss: $40 (if gold breaks out far)',
+      example_pnl: [
+        { gold_price: '$4,000', option_value: '-$20', pnl: '-$10 (range broken low side)' },
+        { gold_price: '$4,070', option_value: '+$10', pnl: '+$10 (in range, keep premium)' },
+        { gold_price: '$4,100', option_value: '+$10', pnl: '+$10 (in range, keep premium)' },
+        { gold_price: '$4,130', option_value: '+$10', pnl: '+$10 (in range, keep premium)' },
+        { gold_price: '$4,190', option_value: '-$20', pnl: '-$10 (range broken high side)' }
+      ]
+    }
+  };
+  
+  const s = scenarios[strategy];
+  if (!s) return;
+  
+  const resultDiv = document.getElementById('aeOptResult');
+  if (!resultDiv) return;
+  
+  resultDiv.style.display = 'block';
+  resultDiv.style.background = 'rgba(7,9,15,0.9)';
+  resultDiv.style.borderRadius = '10px';
+  resultDiv.style.padding = '12px';
+  resultDiv.style.marginTop = '8px';
+  resultDiv.innerHTML =
+    '<div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:8px;">' + s.name + '</div>' +
+    '<div style="font-size:10px;color:#CBD5E1;line-height:1.5;margin-bottom:6px;"><strong>Setup:</strong> ' + s.entry + '</div>' +
+    '<div style="font-size:10px;color:#CBD5E1;line-height:1.5;margin-bottom:6px;"><strong>Breakeven:</strong> ' + s.breakeven + '</div>' +
+    '<div style="font-size:10px;color:#CBD5E1;line-height:1.5;margin-bottom:6px;"><strong>Best Case:</strong> ' + s.best_case + '</div>' +
+    '<div style="font-size:10px;color:#CBD5E1;line-height:1.5;margin-bottom:6px;"><strong>Worst Case:</strong> ' + s.worst_case + '</div>' +
+    '<div style="font-size:10px;color:#CBD5E1;line-height:1.5;margin-bottom:8px;"><strong>Risk/Reward:</strong> ' + s.risk_reward + '</div>' +
+    '<table style="width:100%;font-size:10px;color:#94A3B8;border-collapse:collapse;">' +
+    '<tr style="border-bottom:1px solid rgba(255,255,255,0.06);"><th style="text-align:left;padding:4px;color:#f59e0b;">Gold Price</th><th style="text-align:left;padding:4px;color:#f59e0b;">Option Value</th><th style="text-align:left;padding:4px;color:#f59e0b;">P&L</th></tr>' +
+    s.example_pnl.map(row => '<tr style="border-bottom:1px solid rgba(255,255,255,0.03);"><td style="padding:3px 4px;">' + row.gold_price + '</td><td style="padding:3px 4px;color:#10B981;">' + row.option_value + '</td><td style="padding:3px 4px;color:' + (row.pnl.startsWith('+') ? '#10B981' : '#EF4444') + ';">' + row.pnl + '</td></tr>').join("") +
+    '</table>' +
+    '<div style="font-size:9px;color:#475569;margin-top:6px;">Tap "Ask Claude AI" to get detailed analysis with Claude (requires API key)</div>';
+}
+
+async function aeAnalyzeOptionsWithClaude() {
+  const apiKey = aeGetApiKey();
+  const optResult = document.getElementById("aeOptResult");
+  if (!apiKey || !optResult) return;
+  
+  const strategyName = optResult.dataset.strategy || "unknown";
+  optResult.innerHTML = '<div style="font-size:10px;color:#f59e0b;">Claude analyzing options strategy strategy...</div>';
+  
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1500,
+        messages: [{
+          role: "user",
+          content: "You are an options trading advisor for gold trading. A trader is interested in a " + strategyName + " strategy on XAU/USD (gold trading around $4,096).\n\nPlease provide:\n1. A simple explanation of this strategy for a beginner\n2. What market conditions make it work best\n3. Risk factors and maximum loss\n4. A concrete example with numbers (lot size, gold price scenario, profit/loss)\n5. A recommendation for this gold trading scenario\n\nKeep it practical and easy to understand for a layman."
+        }]
+      })
+    });
+    
+    if (!res.ok) throw new Error("Claude API HTTP " + res.status);
+    const data = await res.json();
+    const textBlock = data.content?.find(b => b.type === "text");
+    if (textBlock) {
+      optResult.innerHTML = '<div style="font-size:10px;color:#f59e0b;margin-bottom:8px;">Claude Analysis:</div><div style="font-size:10px;color:#CBD5E1;line-height:1.5;">' + textBlock.text.replace(/\n/g, "<br>") + '</div>';
+    }
+  } catch (e) {
+    optResult.innerHTML = '<div style="font-size:10px;color:#EF4444;">Claude error: ' + e.message.slice(0, 200) + '</div>';
+  }
+}
+
+5,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 6px;color:#e2e8f0;font-size:11px;width:60px;" />
         <span style="font-size:9px;color:#475569;flex:1;">SL pips</span>
         <input id="pnlSLPips" type="number" value="40" style="flex:1;background:rgba(7,9,15,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 6px;color:#e2e8f0;font-size:11px;width:60px;" />
         <span style="font-size:9px;color:#475569;flex:1;">TP pips</span>
