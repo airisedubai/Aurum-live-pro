@@ -22,44 +22,13 @@
 </head>
 <body>
 <div style="display:flex;background:#07090f;border-bottom:1px solid rgba(245,158,11,0.15);position:sticky;top:0;z-index:200;">
-  <button id="modeBtnDashboard" class="mode-btn" style="flex:1;padding:10px 0;background:rgba(245,158,11,0.08);border:none;border-bottom:2px solid #f59e0b;color:#f59e0b;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;font-family:system-ui,sans-serif;">💰 PRICE DASHBOARD</button>
-
+  <a href="index.html" style="flex:1;text-align:center;padding:10px 0;background:rgba(245,158,11,0.08);border:none;border-bottom:2px solid #f59e0b;color:#f59e0b;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;font-family:system-ui,sans-serif;text-decoration:none;">💰 PRICE DASHBOARD</a>
+  <a href="engine.html" style="flex:1;text-align:center;padding:10px 0;background:none;border:none;border-bottom:2px solid transparent;color:#4b5563;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;font-family:system-ui,sans-serif;text-decoration:none;">⚙ AURUM ENGINE</a>
+  <a href="strategies.html" style="flex:1;text-align:center;padding:10px 0;background:none;border:none;border-bottom:2px solid transparent;color:#4b5563;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;font-family:system-ui,sans-serif;text-decoration:none;">📚 STRATEGIES</a>
 </div>
 <div id="dashboardView" style="display:block;">
 <div id="root"></div>
 </div>
-<div id="engineView" style="display:none;height:calc(100vh - 41px);overflow-y:auto;background:#07090f;color:#e2e8f0;font-family:system-ui,-apple-system,sans-serif;"></div>
-
-<script>
-window.addEventListener("DOMContentLoaded", () => {
-  const btnDash = document.getElementById("modeBtnDashboard");
-  const btnEng = document.getElementById("modeBtnEngine");
-  const viewDash = document.getElementById("dashboardView");
-  const viewEng = document.getElementById("engineView");
-
-  btnDash.addEventListener("click", () => {
-    viewDash.style.display = "block";
-    viewEng.style.display = "none";
-    btnDash.style.background = "rgba(245,158,11,0.08)";
-    btnDash.style.borderBottom = "2px solid #f59e0b";
-    btnDash.style.color = "#f59e0b";
-    btnEng.style.background = "none";
-    btnEng.style.borderBottom = "2px solid transparent";
-    btnEng.style.color = "#4b5563";
-  });
-  btnEng.addEventListener("click", () => {
-    viewDash.style.display = "none";
-    viewEng.style.display = "block";
-    btnEng.style.background = "rgba(245,158,11,0.08)";
-    btnEng.style.borderBottom = "2px solid #f59e0b";
-    btnEng.style.color = "#f59e0b";
-    btnDash.style.background = "none";
-    btnDash.style.borderBottom = "2px solid transparent";
-    btnDash.style.color = "#4b5563";
-    if (window.initAurumEngine) window.initAurumEngine();
-  });
-});
-</script>
 
 <script>
 // ============================================================
