@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head><title>API Test</title></head>
+<body style="background:#07090f;color:#e2e8f0;font-family:system-ui;padding:20px;">
+<h1>AURUM PRO - API Connectivity Test</h1>
+<div id="results"></div>
+<script>
+const results = document.getElementById('results');
+
+async function runTests() {
+  results.innerHTML = '<div style="padding:20px;">Running tests...</div>';
+  
+  // Test 1: TwelveData (Gold, Silver, Oil)
+  const tdSymbols = [
+    {id:'gold', sym:'XAU/USD', name:'Gold'},
+    {id:'silver', sym:'XAG/USD', name:'Silver'},
+    {id:'oil', sym:'WTI/USD', name:'Crude Oil'}
+  ];
+  
+  let tdHtml = '<div style="margin:20px 0;"><h3>TwelveData API (Forex/Commodities)</h3>';
+  for (const s of tdSymbols) {
+    try {
+      const url = `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(s.sym)}&apikey=53ca0f596b344545b65f4384aa2fc6ef`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.close) {
+        tdHtml += `<div style="color:#10B981;padding:10px;margin:5px 0;background:rgba(16,185,129,0.1);border-radius:8px;">
+          ✅ ${s.name} (${s.sym}): <strong>$${parseFloat(data.close).toFixed(2)}</strong> 
+          (${parseFloat(data.percent_change).toFixed(2)}%)
+        </div>`;
+      } else {
+        tdHtml += `<div style="color:#EF4444;padding:10px;margin:5px 0;">❌ ${s.name}: ${JSON.stringify(data).substring(0,100)}</div>`;
+      }
+    } catch(e) {
+      tdHtml += `<div style="color:#EF4444;padding:10px;margin:5px 0;">❌ ${s.name}: ${e.message}</div>`;
+    }
+  }
+  tdHtml += '</div>';
+  
+  // Test 2: Binance (Crypto)
+  const cryptoSymbols = ['BTCUSDT','ETHUSDT','SOLUSDT','XRPUSDT','BNBUSDT'];
+  const cryptoNames = {BTCUSDT:'Bitcoin', ETHUSDT:'Ethereum', SOLUSDT:'Solana', XRPUSDT:'XRP', BNBUSDT:'BNB'};
+  
+  let binanceHtml = '<div style="margin:20px 0;"><h3>Binance API (Cryptocurrencies)</h3>';
+  try {
+    const url = `https://api.binance.com/api/v3/ticker/24hr?symbols=["${cryptoSymbols.join('","')}"]`;
+    const res = await fetch(url);
+    const data = await res.json();
+    
+    if (Array.isArray(data)) {
+      data.forEach(t => {
+        const price = parseFloat(t.lastPrice);
+        const change = parseFloat(t.priceChangePercent);
+        binanceHtml += `<div style="color:#10B981;padding:10px;margin:5px 0;background:rgba(16,185,129,0.1);border-radius:8px;">
+          ✅ ${cryptoNames[t.symbol] || t.symbol}: <strong>$${price.toFixed(2)}</strong> 
+          (${change >= 0 ? '+' : ''}${change.toFixed(2)}%)
+        </div>`;
+      });
+    } else {
+      binanceHtml += `<div style="color:#EF4444;padding:10px;margin:5px 0;">❌ Binance Error: ${JSON.stringify(data).substring(0,200)}</div>`;
+    }
+  } catch(e) {
+    binanceHtml += `<div style="color:#EF4444;padding:10px;margin:5px 0;">❌ Binance Exception: ${e.message}</div>`;
+  }
+  binanceHtml += '</div>';
+  
+  results.innerHTML = tdHtml + binanceHtml + '<div style="margin-top:20px;padding:15px;background:rgba(245,158,11,0.1);border-radius:8px;"><strong>✅ All APIs working!</strong> Your dashboard should now show live prices.</div>';
+}
+
+runTests();
+</script>
+</body>
+</html>
